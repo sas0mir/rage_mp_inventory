@@ -11,6 +11,7 @@ export interface InventoryItem {
     description_full: string
     slotable: number //сколько слотов занимает
     stackable: number //сколько помещается в один стак
+    type?: string
 }
 
 export interface EquippedItems {
@@ -35,7 +36,8 @@ const mockStackItems: InventoryItem[] = [
         size: 1,
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
-        stackable: 1
+        stackable: 1,
+        type: 'weapon'
     },
     {
         id: 2,
@@ -46,7 +48,7 @@ const mockStackItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 1
+        stackable: 2
     },
     {
         id: 3,
@@ -70,7 +72,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
-        stackable: 1
+        stackable: 1,
+        type: 'weapon'
     },
     {
         id: 2,
@@ -81,7 +84,7 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 1
+        stackable: 2
     },
     {
         id: 3,
@@ -103,7 +106,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
-        stackable: 1
+        stackable: 1,
+        type: 'weapon'
     },
     {
         id: 2,
@@ -114,7 +118,7 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 1
+        stackable: 2
     },
     {
         id: 3,
@@ -136,7 +140,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
-        stackable: 1
+        stackable: 1,
+        type: 'weapon'
     },
     {
         id: 2,
@@ -147,7 +152,7 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 1
+        stackable: 2
     },
     {
         id: 3,
@@ -173,10 +178,11 @@ const mockEquippedItems: EquippedItems = {
             size: 1,
             description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
             slotable: 3,
-            stackable: 1
+            stackable: 1,
+            type: 'weapon'
         }
     ],
-    head: {
+    vest: {
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
@@ -185,7 +191,7 @@ const mockEquippedItems: EquippedItems = {
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 1
+        stackable: 2
     },
     medicine: [
         {
@@ -206,6 +212,15 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     const stackItems: InventoryItem[] = mockStackItems
     const inventoryItems: InventoryItem[] = mockInventoryItems
     const equippedItems: EquippedItems = mockEquippedItems
+    function setRealData(data: InventoryItem[]) {
+        console.log('REAL-DATA->', data);
+        //удаляем мок данные
+        stackItems.splice(0, stackItems.length)
+        inventoryItems.splice(0, inventoryItems.length)
+        // stackItems = data.stackItems
+        // inventoryItems = data.inventoryItems
+        // equippedItems = data.equippedItems
+    }
     function setStack(action: string, item: InventoryItem) {
         if (action === 'add') {
             stackItems.push(item)
@@ -243,6 +258,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         stackItems,
         inventoryItems,
         equippedItems,
+        setRealData,
         setStack,
         setInventory,
         setEquippedItems

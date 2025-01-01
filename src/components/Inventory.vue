@@ -3,18 +3,23 @@
     <!-- Список стэша -->
     <section class="inventory-box side-left">
       <h3>Предметы ({{ stack.length }})</h3>
-      <div class="inventory-container container-column">
+      <div
+        class="inventory-container container-column"
+        @dragover.prevent
+        @dragenter.prevent
+        @drop="handleDrop('stack')"
+      >
         <div
-          v-for="item in stack"
-          :key="item.id"
+          v-for="group in groupedStack"
+          :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item"
-          @mouseover="showLeftTooltip(item)"
+          @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
           draggable="true"
-          @dragstart="dragStart(item)"
+          @dragstart="dragStart('stack', group.item)"
         >
-          <img :src="item.icon" :alt="item.name" />
-          <p>{{ item.name }}</p>
+          <img :src="group.item.icon" :alt="group.item.name" />
+          <p>{{ group.item.name }} (x{{ group.quantity }})</p>
         </div>
       </div>
       <!-- Tooltip -->
@@ -29,63 +34,154 @@
     </section>
 
     <!-- Инвентарь игрока -->
-    <div class="inventory-box side-center">
+    <section class="inventory-box side-center">
       <h3>Инвентарь</h3>
       <div class="inventory-container container-column">
         <div class="equipment-weapons">
           <h4>Оружие</h4>
-          <div class="grid">
-            <div class="slot slot-x3"></div>
-            <div class="slot slot-x3"></div>
+          <div class="grid grid-two-fraction">
+            <div
+              class="slot slot-x3"
+              @drop="handleDrop('weapons_left_slot')"
+              @dragover.prevent
+              @dragenter.prevent
+              draggable="true"
+              @dragstart="inventorySlots.weapons && inventorySlots.weapons[0] ? dragStart('weapon_left_slot', inventorySlots.weapons[0]) : null"
+            >
+              <img
+                v-if="inventorySlots.weapons && inventorySlots.weapons[0].id"
+                :src="inventorySlots.weapons && inventorySlots.weapons[0].icon"
+                :alt="inventorySlots.weapons && inventorySlots.weapons[0].name"
+                @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[0])"
+                @mouseleave="hideTooltip"
+                @load="checkOrientation"
+                :class="{ rotated: isVertical }"
+              />
+            </div>
+            <div
+              class="slot slot-x3"
+              @drop="handleDrop('weapons_right_slot')"
+              @dragover.prevent
+              @dragenter.prevent
+              draggable="true"
+              @dragstart="inventorySlots.weapons && inventorySlots.weapons[1] ? dragStart('weapon_right_slot', inventorySlots.weapons[1]) : null"
+            >
+            <img
+                v-if="inventorySlots.weapons && inventorySlots.weapons.length === 2"
+                :src="inventorySlots.weapons && inventorySlots.weapons[1].icon"
+                :alt="inventorySlots.weapons && inventorySlots.weapons[1].name"
+                @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[1])"
+                @mouseleave="hideTooltip"
+                @load="checkOrientation"
+                :class="{ rotated: isVertical }"
+              />
+            </div>
           </div>
         </div>
         <div class="equipment-body">
           <h4>Броня</h4>
           <div class="grid">
-            <div class="slot"></div>
-            <div class="slot"></div>
-            <div class="slot"></div>
+            <div
+              class="slot"
+              @drop="handleDrop('head')"
+              @dragover.prevent
+              @dragenter.prevent
+              draggable="true"
+              @dragstart="inventorySlots.head ? dragStart('head', inventorySlots.head) : null"
+            >
+              <img
+                v-if="inventorySlots.head"
+                :src="inventorySlots.head.icon"
+                :alt="inventorySlots.head.name"
+                @mouseover="showCenterTooltip(inventorySlots.head)"
+                @mouseleave="hideTooltip"
+              />
+            </div>
+            <div
+              class="slot"
+              @drop="handleDrop('vest')"
+              @dragover.prevent
+              @dragenter.prevent
+            >
+              <img
+                v-if="inventorySlots.vest"
+                :src="inventorySlots.vest.icon"
+                :alt="inventorySlots.vest.name"
+                @mouseover="showCenterTooltip(inventorySlots.vest)"
+                @mouseleave="hideTooltip"
+              />
+            </div>
+            <div
+              class="slot"
+              @drop="handleDrop('clothesUp')"
+              @dragover.prevent
+              @dragenter.prevent
+            >
+              <img
+                v-if="inventorySlots.clothesUp"
+                :src="inventorySlots.clothesUp.icon"
+                :alt="inventorySlots.clothesUp.name"
+                @mouseover="showCenterTooltip(inventorySlots.clothesUp)"
+                @mouseleave="hideTooltip"
+              />
+            </div>
             <div class="slot"></div>
             <div class="slot"></div>
             <div class="slot"></div>
           </div>
         </div>
-        <div class="grid">
-        <div
-          v-for="slot in inventorySlots"
-          :key="slot.id"
-          class="slot"
-          @drop="drop(slot.id)"
-          @dragover.prevent
-          @dragenter.prevent
-        >
-          <img
-            v-if="slot.item"
-            :src="slot.item.icon"
-            :alt="slot.item.name"
-            @mouseover="showLeftTooltip(slot.item)"
-            @mouseleave="hideTooltip"
-          />
+        <div class="equipment-food">
+          <h4>Еда и напитки</h4>
+          <div class="grid">
+            <div
+              class="slot"
+              v-for="i in 7"
+              :key="i"
+            ></div>
+          </div>
+        </div>
+        <div class="equipment-medical">
+          <h4>Медикаменты</h4>
+          <div class="grid">
+            <div
+              class="slot"
+              v-for="i in 14"
+              :key="i"
+            ></div>
+          </div>
         </div>
       </div>
+      <!-- Tooltip -->
+      <div v-if="tooltipCenterVisible" class="tooltip tooltip-left" :style="tooltipStyle">
+        <h4>{{ tooltipItem.name }}</h4>
+        <p>{{ tooltipItem.description_full }}</p>
+        <div class="tooltip-footer">
+          <p>Состояние: {{ tooltipItem.health }}</p>
+          <p>Размер: {{ tooltipItem.slotable }}</p>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- Рюкзак -->
     <section class="inventory-box side-right">
       <h3>Рюкзак ({{ inventory.length }})</h3>
-      <div class="inventory-container container-column">
+      <div
+        class="inventory-container container-column"
+        @dragover.prevent
+        @dragenter.prevent
+        @drop="handleDrop('inventory')"
+      >
         <div
-          v-for="item in inventory"
-          :key="item.id"
+          v-for="group in groupedInventory"
+          :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item items-right"
-          @mouseover="showRightTooltip(item)"
+          @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
           draggable="true"
-          @dragstart="dragStart(item)"
+          @dragstart="dragStart('inventory', group.item)"
         >
-          <p>{{ item.name }}</p>
-          <img :src="item.icon" :alt="item.name" />
+          <p>{{ group.item.name }} (x{{ group.quantity }})</p>
+          <img :src="group.item.icon" :alt="group.item.name" />
         </div>
       </div>
       <!-- Tooltip -->
@@ -98,40 +194,92 @@
         </div>
       </div>
     </section>
-
-    <!-- Tooltip -->
-    <!-- <div v-if="tooltipVisible" class="tooltip" :style="tooltipStyle">
-      <h4>{{ tooltipItem.name }}</h4>
-      <p>{{ tooltipItem.description_full }}</p>
-    </div> -->
   </div>
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
-import { useInventoryItemsStore, type InventoryItem } from "../stores/inventory_items";
+import { onMounted, ref, computed } from "vue";
+import { useInventoryItemsStore, type InventoryItem, type EquippedItems } from "../stores/inventory_items";
 
 export default {
   name: "UserInventory",
   setup() {
-    // Получаем данные из стейта
-    const inventoryItemsStore = useInventoryItemsStore();
-    const inventoryItems = inventoryItemsStore.inventoryItems;
-    const stackItems = inventoryItemsStore.stackItems;
-    const inventory = ref(inventoryItems);
-    const stack = ref(stackItems);
+    //Данные для рендера 3х блоков инвентаря
+    const inventory = ref<InventoryItem[]>([]);
+    const stack = ref<InventoryItem[]>([]);
+    const inventorySlots = ref<EquippedItems>({});
 
-    // Слоты инвентаря
-    const inventorySlots = ref(
-      Array.from({ length: inventory.value.length }, (_, i) => ({
-        id: i + 1,
-        item: <InventoryItem | null>(null),
-      }))
-    );
+    const loadData = async () => {
+      try {
+        //Подгружаем данные из стора или делаем запрос на сервер
+        const inventoryItemsStore = useInventoryItemsStore();
+        const inventoryItems = inventoryItemsStore.inventoryItems;
+        const stackItems = inventoryItemsStore.stackItems;
+        const equippedItems = inventoryItemsStore.equippedItems;
+        stack.value = stackItems;
+        inventory.value = inventoryItems;
+        inventorySlots.value = equippedItems;
+      } catch (error) {
+        console.error('Ошибка получения проедиетов->', error);
+      }
+    }
+
+    onMounted(() => {
+      loadData();
+    });
+
+    // Группировка предметов в зависимости от stackable
+    const groupedStack = computed(() => {
+      const groups: Record<number, { item: InventoryItem; quantity: number }[]> = {};
+      stack.value.forEach((item) => {
+        if (!groups[item.id]) {
+          groups[item.id] = [];
+        }
+        const group = groups[item.id];
+        const stackable = item.stackable;
+        const slot = group.find((g) => g.quantity < stackable);
+        if (slot) {
+          slot.quantity += 1;
+        } else {
+          group.push({ item, quantity: 1 });
+        }
+      });
+      return Object.values(groups).flat();
+    });
+    const groupedInventory = computed(() => {
+      const groups: Record<number, { item: InventoryItem; quantity: number }[]> = {};
+      inventory.value.forEach((item) => {
+        if (!groups[item.id]) {
+          groups[item.id] = [];
+        }
+        const group = groups[item.id];
+        const stackable = item.stackable;
+        const slot = group.find((g) => g.quantity < stackable);
+        if (slot) {
+          slot.quantity += 1;
+        } else {
+          group.push({ item, quantity: 1 });
+        }
+      });
+      console.log('groups', groups);
+      return Object.values(groups).flat();
+    });
+
+    // для проверки ориентации изображения
+    const isVertical = ref(false);
+    const checkOrientation = (event: Event) => {
+      const img = event.target as HTMLImageElement;
+      if (img.naturalHeight > img.naturalWidth) {
+        isVertical.value = true; // Если высота больше ширины, изображение вертикальное
+      } else {
+        isVertical.value = false; // Изображение горизонтальное
+      }
+    };
 
     // Всплывающая подсказка
     const tooltipLeftVisible = ref(false);
     const tooltipRightVisible = ref(false);
+    const tooltipCenterVisible = ref(false);
     const tooltipItem = ref<InventoryItem>({
       name: '', description_full: '',
       id: 0,
@@ -151,41 +299,130 @@ export default {
       tooltipItem.value = item;
       tooltipRightVisible.value = true;
     };
+    const showCenterTooltip = (item: InventoryItem) => {
+      tooltipItem.value = item;
+      tooltipCenterVisible.value = true;
+    };
     const hideTooltip = () => {
       tooltipLeftVisible.value = false;
       tooltipRightVisible.value = false;
+      tooltipCenterVisible.value = false;
     };
 
     // Перетаскиваемый элемент
-    const draggedItem = ref<InventoryItem | null>(null);
+    const draggedItem = ref<{from: string, item: InventoryItem} | null>(null);
 
-    const dragStart = (item: InventoryItem) => {
-      draggedItem.value = item;
-      tooltipLeftVisible.value = false;
+    const dragStart = (from: string, item: InventoryItem) => {
+      draggedItem.value = { from, item };
+      hideTooltip();
     };
 
-    const drop = (slotId: number) => {
-      const slot = inventorySlots.value.find((s) => s.id === slotId);
-      if (slot && !slot.item) {
-        slot.item = draggedItem.value;
-        inventory.value = inventory.value.filter((i) => draggedItem.value && i.id !== draggedItem.value.id);
-        draggedItem.value = null;
+    // Обработка события drop
+    const handleDrop = (to: string) => {
+      console.log('to', to, 'draggedItem', draggedItem.value);
+      if (draggedItem.value) {
+        //вставляем перетаскиваемый предмет в новое расположение (to)
+        if (to === 'inventory') {
+          inventory.value.push(draggedItem.value.item);
+          // todo добавить изменение стейта
+        } else if (to === 'stack') {
+          stack.value.push(draggedItem.value.item);
+        } else if (to === 'weapons_left_slot') {
+          if (!inventorySlots.value.weapons) {
+            inventorySlots.value.weapons = [];
+          }
+          if(draggedItem.value.item.type !== 'weapon') {
+            return;
+          }
+          inventorySlots.value.weapons[0] = draggedItem.value.item;
+        } else if (to === 'weapons_right_slot') {
+          if (!inventorySlots.value.weapons) {
+            inventorySlots.value.weapons = [];
+          }
+          if(draggedItem.value.item.type !== 'weapon') {
+            return;
+          }
+          inventorySlots.value.weapons[1] = draggedItem.value.item;
+        } else if (to === 'head') {
+          inventorySlots.value.head = draggedItem.value.item;
+        } else if (to === 'vest') {
+          inventorySlots.value.vest = draggedItem.value.item;
+        } else if (to === 'clothesUp') {
+          inventorySlots.value.clothesUp = draggedItem.value.item;
+        }
+        //удаляем перетаскиваемый предмет из прошлого расположения (from)
+        if (draggedItem.value.from === 'stack') {
+          const delIndex = stack.value.findIndex((i) => i.id === draggedItem.value?.item.id);
+          if (delIndex !== -1) {
+            stack.value.splice(delIndex, 1);
+          }
+        } else if (draggedItem.value.from === 'inventory') {
+          const delIndex = inventory.value.findIndex((i) => i.id === draggedItem.value?.item.id);
+          if (delIndex !== -1) {
+            inventory.value.splice(delIndex, 1);
+          }
+        } else if (draggedItem.value.from === 'weapons_left_slot' && inventorySlots.value.weapons) {
+          inventorySlots.value.weapons[0] = {
+            name: '',
+            description_full: '',
+            id: 0,
+            description: '',
+            icon: '',
+            health: 0,
+            size: 0,
+            slotable: 0,
+            stackable: 0
+          };
+        } else if (draggedItem.value.from === 'weapons_right_slot' && inventorySlots.value.weapons) {
+          inventorySlots.value.weapons[1] = {
+            name: '',
+            description_full: '',
+            id: 0,
+            description: '',
+            icon: '',
+            health: 0,
+            size: 0,
+            slotable: 0,
+            stackable: 0
+          };
+        } else if (draggedItem.value.from === 'head') {
+          inventorySlots.value.head = null;
+        } else if (draggedItem.value.from === 'vest') {
+          inventorySlots.value.vest = null;
+        } else if (draggedItem.value.from === 'clothesUp') {
+          inventorySlots.value.clothesUp = null;
+        }
       }
-    };
+    }
+
+    // const drop = (slotId: number) => {
+    //   const slot = inventorySlots.value.find((s) => s.id === slotId);
+    //   if (slot && !slot.item) {
+    //     slot.item = draggedItem.value;
+    //     inventory.value = inventory.value.filter((i) => draggedItem.value && i.id !== draggedItem.value.id);
+    //     draggedItem.value = null;
+    //   }
+    // };
 
     return {
       inventory,
       stack,
       inventorySlots,
+      groupedStack,
+      groupedInventory,
       tooltipLeftVisible,
       tooltipRightVisible,
+      tooltipCenterVisible,
       tooltipItem,
       tooltipStyle,
       showLeftTooltip,
       showRightTooltip,
+      showCenterTooltip,
       hideTooltip,
       dragStart,
-      drop,
+      handleDrop,
+      isVertical,
+      checkOrientation
     };
   },
 };
@@ -194,14 +431,13 @@ export default {
 <style scoped>
 .inventory {
   position: fixed;
-  top: 10vh;
+  top: 15vh;
   left: 20vw;
   display: flex;
   justify-content: space-between;
   background-color: rgba(112, 128, 144, 0.663);
   width: 60%;
   margin: auto;
-  margin-top: 20%;
   padding: 2rem;
   font-family: "Roboto", serif;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;;
@@ -239,7 +475,7 @@ export default {
   gap: 1rem;
   padding: 1rem;
   margin: 1rem;
-  min-height: 500px;
+  min-height: 35vh;
   max-height: 40vh;
   overflow: auto;
   background-color: rgba(106, 119, 132, 0.734);
@@ -293,10 +529,14 @@ export default {
 
 .grid {
   display: grid;
-  flex-grow: 2;
-  grid-template-columns: repeat(3, 1fr);
+  /* flex-grow: 2; */
+  grid-template-columns: repeat(7, 1fr);
   gap: 1rem;
   padding: 1rem;
+}
+.grid-two-fraction {
+  grid-template-columns: repeat(2, 3fr);
+  justify-content: space-around;
 }
 
 .slot {
@@ -314,6 +554,10 @@ export default {
 }
 .slot.slot-x3 {
   width: 180px;
+}
+.slot-x3 > img {
+  width: 60px;
+  height: auto;
 }
 
 .tooltip {
@@ -346,6 +590,10 @@ export default {
 .tooltip-footer {
   display: flex;
   justify-content: space-between;
+}
+
+img.rotated {
+  transform: rotate(90deg);
 }
 /* max-width: 3840px
 
