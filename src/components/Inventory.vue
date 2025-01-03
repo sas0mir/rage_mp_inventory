@@ -5,18 +5,14 @@
       <h3>Предметы ({{ stack.length }})</h3>
       <div
         class="inventory-container container-column"
-        @dragover.prevent
-        @dragenter.prevent
-        @drop="handleDrop('stack')"
       >
         <div
           v-for="group in groupedStack"
           :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item"
+          @mousedown="handleMouseDown('stack', group.item, $event)"
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
-          draggable="true"
-          @dragstart="dragStart('stack', group.item)"
         >
           <img :src="group.item.icon" :alt="group.item.name" />
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
@@ -40,36 +36,24 @@
         <div class="equipment-weapons">
           <h4>Оружие</h4>
           <div class="grid grid-two-fraction">
-            <div
-              class="slot slot-x3"
-              @drop="handleDrop('weapons_left_slot')"
-              @dragover.prevent
-              @dragenter.prevent
-              draggable="true"
-              @dragstart="inventorySlots.weapons && inventorySlots.weapons[0] ? dragStart('weapon_left_slot', inventorySlots.weapons[0]) : null"
-            >
+            <div class="slot slot-x3">
               <img
                 v-if="inventorySlots.weapons && inventorySlots.weapons[0].id"
                 :src="inventorySlots.weapons && inventorySlots.weapons[0].icon"
                 :alt="inventorySlots.weapons && inventorySlots.weapons[0].name"
+                @mousedown="handleMouseDown('weapons_right_slot', inventorySlots.weapons[0], $event)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[0])"
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
                 :class="{ rotated: isVertical }"
               />
             </div>
-            <div
-              class="slot slot-x3"
-              @drop="handleDrop('weapons_right_slot')"
-              @dragover.prevent
-              @dragenter.prevent
-              draggable="true"
-              @dragstart="inventorySlots.weapons && inventorySlots.weapons[1] ? dragStart('weapon_right_slot', inventorySlots.weapons[1]) : null"
-            >
-            <img
+            <div class="slot slot-x3">
+              <img
                 v-if="inventorySlots.weapons && inventorySlots.weapons.length === 2"
                 :src="inventorySlots.weapons && inventorySlots.weapons[1].icon"
                 :alt="inventorySlots.weapons && inventorySlots.weapons[1].name"
+                @mousedown="handleMouseDown('weapons_right_slot', inventorySlots.weapons[1], $event)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[1])"
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
@@ -81,14 +65,7 @@
         <div class="equipment-body">
           <h4>Броня</h4>
           <div class="grid">
-            <div
-              class="slot"
-              @drop="handleDrop('head')"
-              @dragover.prevent
-              @dragenter.prevent
-              draggable="true"
-              @dragstart="inventorySlots.head ? dragStart('head', inventorySlots.head) : null"
-            >
+            <div class="slot">
               <img
                 v-if="inventorySlots.head"
                 :src="inventorySlots.head.icon"
@@ -97,12 +74,7 @@
                 @mouseleave="hideTooltip"
               />
             </div>
-            <div
-              class="slot"
-              @drop="handleDrop('vest')"
-              @dragover.prevent
-              @dragenter.prevent
-            >
+            <div class="slot">
               <img
                 v-if="inventorySlots.vest"
                 :src="inventorySlots.vest.icon"
@@ -111,12 +83,7 @@
                 @mouseleave="hideTooltip"
               />
             </div>
-            <div
-              class="slot"
-              @drop="handleDrop('clothesUp')"
-              @dragover.prevent
-              @dragenter.prevent
-            >
+            <div class="slot">
               <img
                 v-if="inventorySlots.clothesUp"
                 :src="inventorySlots.clothesUp.icon"
@@ -165,20 +132,14 @@
     <!-- Рюкзак -->
     <section class="inventory-box side-right">
       <h3>Рюкзак ({{ inventory.length }})</h3>
-      <div
-        class="inventory-container container-column"
-        @dragover.prevent
-        @dragenter.prevent
-        @drop="handleDrop('inventory')"
-      >
+      <div class="inventory-container container-column">
         <div
           v-for="group in groupedInventory"
           :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item items-right"
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
-          draggable="true"
-          @dragstart="dragStart('inventory', group.item)"
+          @mmousedown="handleMouseDown('inventory', group.item, $event)"
         >
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
           <img :src="group.item.icon" :alt="group.item.name" />
@@ -309,91 +270,165 @@ export default {
       tooltipCenterVisible.value = false;
     };
 
-    // Перетаскиваемый элемент
-    const draggedItem = ref<{from: string, item: InventoryItem} | null>(null);
+    // Вариант драгндропа с onmousedown по координатам
+    const handleMouseDown = (from: string, item: InventoryItem, event: MouseEvent) => {
+      const itemElement = (event.target as Element).closest(".inventory-side-item");
+      if (!itemElement) return;
 
-    const dragStart = (from: string, item: InventoryItem) => {
-      draggedItem.value = { from, item };
-      hideTooltip();
+      const initialX = event.clientX;
+      const initialY = event.clientY;
+
+      const itemRect = itemElement.getBoundingClientRect();
+      const shiftX = initialX - itemRect.left;
+      const shiftY = initialY - itemRect.top;
+      // Устанавливаем абсолютное позиционирование
+      itemElement.setAttribute("style", "position: absolute; z-index: 1000;");
+      document.body.append(itemElement);
+
+      moveAt(event.pageX, event.pageY, itemElement);
+
+      function moveAt(pageX: number, pageY: number, itemElement: Element) {
+        itemElement.setAttribute("style", "left: " + (pageX - shiftX) + "px; top: " + (pageY - shiftY) + "px;");
+      }
+
+      function onMouseMove(event: MouseEvent) {
+        moveAt(event.pageX, event.pageY);
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+
+      itemElement.onmouseup = function (event) {
+        document.removeEventListener("mousemove", onMouseMove);
+        itemElement.onmouseup = null;
+
+        // Получаем слот, куда был перенесен предмет
+        const dropSlot = getSlotFromEvent(event);
+        if (dropSlot) {
+          handleDrop(item, dropSlot);
+        }
+
+        // Возвращаем предмет на место, если перенос не удался
+        resetItemPosition(itemElement);
+      };
     };
 
-    // Обработка события drop
-    const handleDrop = (to: string) => {
-      console.log('to', to, 'draggedItem', draggedItem.value);
-      if (draggedItem.value) {
-        //вставляем перетаскиваемый предмет в новое расположение (to)
-        if (to === 'inventory') {
-          inventory.value.push(draggedItem.value.item);
-          // todo добавить изменение стейта
-        } else if (to === 'stack') {
-          stack.value.push(draggedItem.value.item);
-        } else if (to === 'weapons_left_slot') {
-          if (!inventorySlots.value.weapons) {
-            inventorySlots.value.weapons = [];
-          }
-          if(draggedItem.value.item.type !== 'weapon') {
-            return;
-          }
-          inventorySlots.value.weapons[0] = draggedItem.value.item;
-        } else if (to === 'weapons_right_slot') {
-          if (!inventorySlots.value.weapons) {
-            inventorySlots.value.weapons = [];
-          }
-          if(draggedItem.value.item.type !== 'weapon') {
-            return;
-          }
-          inventorySlots.value.weapons[1] = draggedItem.value.item;
-        } else if (to === 'head') {
-          inventorySlots.value.head = draggedItem.value.item;
-        } else if (to === 'vest') {
-          inventorySlots.value.vest = draggedItem.value.item;
-        } else if (to === 'clothesUp') {
-          inventorySlots.value.clothesUp = draggedItem.value.item;
-        }
-        //удаляем перетаскиваемый предмет из прошлого расположения (from)
-        if (draggedItem.value.from === 'stack') {
-          const delIndex = stack.value.findIndex((i) => i.id === draggedItem.value?.item.id);
-          if (delIndex !== -1) {
-            stack.value.splice(delIndex, 1);
-          }
-        } else if (draggedItem.value.from === 'inventory') {
-          const delIndex = inventory.value.findIndex((i) => i.id === draggedItem.value?.item.id);
-          if (delIndex !== -1) {
-            inventory.value.splice(delIndex, 1);
-          }
-        } else if (draggedItem.value.from === 'weapons_left_slot' && inventorySlots.value.weapons) {
-          inventorySlots.value.weapons[0] = {
-            name: '',
-            description_full: '',
-            id: 0,
-            description: '',
-            icon: '',
-            health: 0,
-            size: 0,
-            slotable: 0,
-            stackable: 0
-          };
-        } else if (draggedItem.value.from === 'weapons_right_slot' && inventorySlots.value.weapons) {
-          inventorySlots.value.weapons[1] = {
-            name: '',
-            description_full: '',
-            id: 0,
-            description: '',
-            icon: '',
-            health: 0,
-            size: 0,
-            slotable: 0,
-            stackable: 0
-          };
-        } else if (draggedItem.value.from === 'head') {
-          inventorySlots.value.head = null;
-        } else if (draggedItem.value.from === 'vest') {
-          inventorySlots.value.vest = null;
-        } else if (draggedItem.value.from === 'clothesUp') {
-          inventorySlots.value.clothesUp = null;
+    const getSlotFromEvent = (event) => {
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+
+      const slots = document.querySelectorAll(".inventory-slot");
+      for (const slot of slots) {
+        const rect = slot.getBoundingClientRect();
+        if (
+          mouseX >= rect.left &&
+          mouseX <= rect.right &&
+          mouseY >= rect.top &&
+          mouseY <= rect.bottom
+        ) {
+          return slot;
         }
       }
-    }
+      return null;
+    };
+
+    const handleDrop = (group, dropSlot) => {
+      console.log("Перенос предмета:", group);
+      console.log("Новый слот:", dropSlot);
+      // Логика перемещения предмета в новый слот
+    };
+
+    const resetItemPosition = (itemElement) => {
+      itemElement.style.position = "";
+      itemElement.style.zIndex = "";
+      itemElement.style.left = "";
+      itemElement.style.top = "";
+    };
+
+    // Перетаскиваемый элемент
+    // const draggedItem = ref<{from: string, item: InventoryItem} | null>(null);
+
+    // const dragStart = (from: string, item: InventoryItem) => {
+    //   draggedItem.value = { from, item };
+    //   hideTooltip();
+    // };
+
+    // Обработка события drop
+    // const handleDrop = (to: string) => {
+    //   console.log('to', to, 'draggedItem', draggedItem.value);
+    //   if (draggedItem.value) {
+    //     //вставляем перетаскиваемый предмет в новое расположение (to)
+    //     if (to === 'inventory') {
+    //       inventory.value.push(draggedItem.value.item);
+    //       // todo добавить изменение стейта
+    //     } else if (to === 'stack') {
+    //       stack.value.push(draggedItem.value.item);
+    //     } else if (to === 'weapons_left_slot') {
+    //       if (!inventorySlots.value.weapons) {
+    //         inventorySlots.value.weapons = [];
+    //       }
+    //       if(draggedItem.value.item.type !== 'weapon') {
+    //         return;
+    //       }
+    //       inventorySlots.value.weapons[0] = draggedItem.value.item;
+    //     } else if (to === 'weapons_right_slot') {
+    //       if (!inventorySlots.value.weapons) {
+    //         inventorySlots.value.weapons = [];
+    //       }
+    //       if(draggedItem.value.item.type !== 'weapon') {
+    //         return;
+    //       }
+    //       inventorySlots.value.weapons[1] = draggedItem.value.item;
+    //     } else if (to === 'head') {
+    //       inventorySlots.value.head = draggedItem.value.item;
+    //     } else if (to === 'vest') {
+    //       inventorySlots.value.vest = draggedItem.value.item;
+    //     } else if (to === 'clothesUp') {
+    //       inventorySlots.value.clothesUp = draggedItem.value.item;
+    //     }
+    //     //удаляем перетаскиваемый предмет из прошлого расположения (from)
+    //     if (draggedItem.value.from === 'stack') {
+    //       const delIndex = stack.value.findIndex((i) => i.id === draggedItem.value?.item.id);
+    //       if (delIndex !== -1) {
+    //         stack.value.splice(delIndex, 1);
+    //       }
+    //     } else if (draggedItem.value.from === 'inventory') {
+    //       const delIndex = inventory.value.findIndex((i) => i.id === draggedItem.value?.item.id);
+    //       if (delIndex !== -1) {
+    //         inventory.value.splice(delIndex, 1);
+    //       }
+    //     } else if (draggedItem.value.from === 'weapons_left_slot' && inventorySlots.value.weapons) {
+    //       inventorySlots.value.weapons[0] = {
+    //         name: '',
+    //         description_full: '',
+    //         id: 0,
+    //         description: '',
+    //         icon: '',
+    //         health: 0,
+    //         size: 0,
+    //         slotable: 0,
+    //         stackable: 0
+    //       };
+    //     } else if (draggedItem.value.from === 'weapons_right_slot' && inventorySlots.value.weapons) {
+    //       inventorySlots.value.weapons[1] = {
+    //         name: '',
+    //         description_full: '',
+    //         id: 0,
+    //         description: '',
+    //         icon: '',
+    //         health: 0,
+    //         size: 0,
+    //         slotable: 0,
+    //         stackable: 0
+    //       };
+    //     } else if (draggedItem.value.from === 'head') {
+    //       inventorySlots.value.head = null;
+    //     } else if (draggedItem.value.from === 'vest') {
+    //       inventorySlots.value.vest = null;
+    //     } else if (draggedItem.value.from === 'clothesUp') {
+    //       inventorySlots.value.clothesUp = null;
+    //     }
+    //   }
+    // }
 
     // const drop = (slotId: number) => {
     //   const slot = inventorySlots.value.find((s) => s.id === slotId);
@@ -419,7 +454,8 @@ export default {
       showRightTooltip,
       showCenterTooltip,
       hideTooltip,
-      dragStart,
+      handleMouseDown,
+      //dragStart,
       handleDrop,
       isVertical,
       checkOrientation
@@ -438,7 +474,8 @@ export default {
   background-color: rgba(112, 128, 144, 0.663);
   width: 60%;
   margin: auto;
-  padding: 2rem;
+  border-radius: 1rem;
+  /* padding: 2rem; */
   font-family: "Roboto", serif;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;;
 }
@@ -457,14 +494,26 @@ export default {
   flex-grow: 1;
 }
 
+.inventory-box.side-right {
+  background-image: url('/bgb.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
 .inventory-box > h3 {
-  padding: 1rem;
+  padding: 0.5rem;
   margin: 1rem;
-  background-color: rgb(45, 45, 45);
+  border-radius: 1rem;
+  background-color: rgb(65, 68, 66);
+  background-image: url('/background_camouflage_headers.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
   color: whitesmoke;
   text-align: center;
   text-transform: uppercase;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
@@ -478,7 +527,7 @@ export default {
   min-height: 35vh;
   max-height: 40vh;
   overflow: auto;
-  background-color: rgba(106, 119, 132, 0.734);
+  /* background-color: rgba(106, 119, 132, 0.734); */
 }
 
 .container-column {
@@ -493,7 +542,7 @@ export default {
   width: 100%;
   height: fit-content;
   padding: 1rem;
-  background-color: rgba(78, 75, 71, 0.911);
+  /* background-color: rgba(78, 75, 71, 0.911); */
 }
 
 .items-right {
@@ -501,9 +550,10 @@ export default {
 }
 
 .inventory-side-item > img {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   cursor: grab;
+  background-color: rgba(0,0,0,0.75);
 }
 
 .inventory-side-item > p {
