@@ -5,14 +5,16 @@
       <h3>Предметы ({{ stack.length }})</h3>
       <div
         class="inventory-container container-column"
+        :id="'dropzone_left'"
       >
         <div
           v-for="group in groupedStack"
           :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item"
-          @mousedown="handleMouseDown('stack', group.item, $event)"
+          @mousedown="handleMouseDown('stack', $event, group.item)"
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
+          :id="'movable_left' + group.item.id"
         >
           <img :src="group.item.icon" :alt="group.item.name" />
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
@@ -36,24 +38,24 @@
         <div class="equipment-weapons">
           <h4>Оружие</h4>
           <div class="grid grid-two-fraction">
-            <div class="slot slot-x3">
+            <div class="slot slot-x3" :id="'movableslot_weapons_left'">
               <img
                 v-if="inventorySlots.weapons && inventorySlots.weapons[0].id"
                 :src="inventorySlots.weapons && inventorySlots.weapons[0].icon"
                 :alt="inventorySlots.weapons && inventorySlots.weapons[0].name"
-                @mousedown="handleMouseDown('weapons_right_slot', inventorySlots.weapons[0], $event)"
+                @mousedown="handleMouseDown('weapons_right_slot', $event, inventorySlots.weapons[0])"
                 @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[0])"
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
                 :class="{ rotated: isVertical }"
               />
             </div>
-            <div class="slot slot-x3">
+            <div class="slot slot-x3" :id="'movableslot_weapons_right'">
               <img
                 v-if="inventorySlots.weapons && inventorySlots.weapons.length === 2"
                 :src="inventorySlots.weapons && inventorySlots.weapons[1].icon"
                 :alt="inventorySlots.weapons && inventorySlots.weapons[1].name"
-                @mousedown="handleMouseDown('weapons_right_slot', inventorySlots.weapons[1], $event)"
+                @mousedown="handleMouseDown('weapons_right_slot', $event, inventorySlots.weapons[1])"
                 @mouseover="showCenterTooltip(inventorySlots.weapons && inventorySlots.weapons[1])"
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
@@ -132,14 +134,15 @@
     <!-- Рюкзак -->
     <section class="inventory-box side-right">
       <h3>Рюкзак ({{ inventory.length }})</h3>
-      <div class="inventory-container container-column">
+      <div class="inventory-container container-column" :id="'dropzone_right'">
         <div
           v-for="group in groupedInventory"
           :key="group.item.id + '-' + group.quantity"
+          :id="'movable_right' + group.item.id"
           class="inventory-side-item items-right"
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
-          @mmousedown="handleMouseDown('inventory', group.item, $event)"
+          @mmousedown="handleMouseDown('inventory', $event, group.item)"
         >
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
           <img :src="group.item.icon" :alt="group.item.name" />
@@ -159,7 +162,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, onUnmounted, reactive } from "vue";
 import { useInventoryItemsStore, type InventoryItem, type EquippedItems } from "../stores/inventory_items";
 
 export default {
@@ -187,7 +190,14 @@ export default {
 
     onMounted(() => {
       loadData();
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     });
+
+    onUnmounted(() => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    })
 
     // Группировка предметов в зависимости от stackable
     const groupedStack = computed(() => {
@@ -270,79 +280,143 @@ export default {
       tooltipCenterVisible.value = false;
     };
 
+    //final dragndrop version
+    const draggedElement = ref<HTMLElement | null>(null);
+    const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
+    const dragOffset = reactive({ x: 0, y: 0 });
+
+    const handleMouseDown = (from: string, event: MouseEvent, drItem: InventoryItem) => {
+
+      // document.addEventListener("mousemove", handleMouseMove);
+      // document.addEventListener("mouseup", handleMouseUp);
+      hideTooltip();
+      const target = event.target as HTMLElement;
+      const item = target.closest("[id*='movable']") as HTMLElement;
+      console.log('MOUSEDOWN', drItem, item);
+
+      if (!item) return;
+
+      // Устанавливаем перетаскиваемый элемент
+      draggedElement.value = item;
+      draggedItem.value = { from, item: drItem };
+
+      // Сохраняем смещение курсора относительно элемента
+      const rect = item.getBoundingClientRect();
+      dragOffset.x = event.clientX - rect.left;
+      dragOffset.y = event.clientY - rect.top;
+
+      // Переводим элемент в абсолютное позиционирование
+      item.style.position = "absolute";
+      item.style.zIndex = "1000";
+      document.body.appendChild(item);
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!draggedElement.value) {
+        console.log('GOTCHA');
+        return;
+      }
+      console.log('MOVE->');
+      // Перемещаем элемент
+      draggedElement.value.style.left = `${event.clientX - dragOffset.x}px`;
+      draggedElement.value.style.top = `${event.clientY - dragOffset.y}px`;
+    };
+
+    const handleMouseUp = () => {
+      console.log('MouseUp', draggedElement.value);
+      if (draggedElement.value) {
+        // Возвращаем элемент в изначальное положение или фиксируем его на новом месте
+        draggedElement.value.style.zIndex = "";
+        draggedElement.value = null;
+        draggedItem.value = null;
+      }
+      // document.removeEventListener('mousemove', handleMouseMove);
+      // document.removeEventListener('mouseup', handleMouseUp);
+    };
+
     // Вариант драгндропа с onmousedown по координатам
-    const handleMouseDown = (from: string, item: InventoryItem, event: MouseEvent) => {
-      const itemElement = (event.target as Element).closest(".inventory-side-item");
-      if (!itemElement) return;
+    // const handleMouseDown = (from: string, item: InventoryItem, event: MouseEvent) => {
+    //   const itemElement = (event.target as HTMLElement).closest(".inventory-side-item");
+    //   if (!itemElement) return;
 
-      const initialX = event.clientX;
-      const initialY = event.clientY;
+    //   const initialX = event.clientX;
+    //   const initialY = event.clientY;
+    //   console.log('mousedown', initialX, initialY);
+    //   const itemRect = itemElement.getBoundingClientRect();
+    //   const shiftX = initialX - itemRect.left;
+    //   const shiftY = initialY - itemRect.top;
+    //   // Устанавливаем абсолютное позиционирование
+    //   itemElement.setAttribute("style", "position: absolute; z-index: 1000;");
+    //   document.body.append(itemElement);
 
-      const itemRect = itemElement.getBoundingClientRect();
-      const shiftX = initialX - itemRect.left;
-      const shiftY = initialY - itemRect.top;
-      // Устанавливаем абсолютное позиционирование
-      itemElement.setAttribute("style", "position: absolute; z-index: 1000;");
-      document.body.append(itemElement);
+    //   moveAt(event.pageX, event.pageY, itemElement);
 
-      moveAt(event.pageX, event.pageY, itemElement);
+    //   function moveAt(pageX: number, pageY: number, itemElement: Element) {
+    //     if (itemElement instanceof HTMLElement) {
+    //       itemElement.style.left = (pageX - shiftX) + "px";
+    //       itemElement.style.top = (pageY - shiftY) + "px";
+    //     }
+    //   }
 
-      function moveAt(pageX: number, pageY: number, itemElement: Element) {
-        itemElement.setAttribute("style", "left: " + (pageX - shiftX) + "px; top: " + (pageY - shiftY) + "px;");
-      }
+    //   const onMouseMove = (item: Element) => (event: MouseEvent) => {
+    //     console.log('MOVE');
+    //     moveAt(event.pageX, event.pageY, item);
+    //   }
 
-      function onMouseMove(event: MouseEvent) {
-        moveAt(event.pageX, event.pageY);
-      }
+    //   document.addEventListener("mousemove", onMouseMove(itemElement));
 
-      document.addEventListener("mousemove", onMouseMove);
+    //   (itemElement as HTMLElement).onmouseup = function (event: MouseEvent) {
+    //     console.log('mouseup-0', event);
+    //     document.removeEventListener("mousemove", onMouseMove(itemElement));
+    //     console.log('MouseUp-1');
+    //     (itemElement as HTMLElement).onmouseup = null;
+    //     console.log('MouseUp-2');
+    //     // Получаем слот, куда был перенесен предмет
+    //     const dropSlot = getSlotFromEvent(event);
+    //     if (dropSlot) {
+    //       handleDrop(item, dropSlot, from);
+    //     }
+    //     console.log('DROP->', dropSlot);
+    //     // Возвращаем предмет на место, если перенос не удался
+    //     resetItemPosition(itemElement);
+    //   };
+    // };
 
-      itemElement.onmouseup = function (event) {
-        document.removeEventListener("mousemove", onMouseMove);
-        itemElement.onmouseup = null;
+    // const getSlotFromEvent = (event: MouseEvent) => {
+    //   const mouseX = event.clientX;
+    //   const mouseY = event.clientY;
 
-        // Получаем слот, куда был перенесен предмет
-        const dropSlot = getSlotFromEvent(event);
-        if (dropSlot) {
-          handleDrop(item, dropSlot);
-        }
+    //   const slots = document.querySelectorAll(".inventory-slot");
+    //   console.log('slots', slots);
+    //   for (const slot of slots) {
+    //     const rect = slot.getBoundingClientRect();
+    //     if (
+    //       mouseX >= rect.left &&
+    //       mouseX <= rect.right &&
+    //       mouseY >= rect.top &&
+    //       mouseY <= rect.bottom
+    //     ) {
+    //       return slot;
+    //     }
+    //   }
+    //   return null;
+    // };
 
-        // Возвращаем предмет на место, если перенос не удался
-        resetItemPosition(itemElement);
-      };
-    };
+    // const handleDrop = (item: InventoryItem, dropSlot: Element, from: string) => {
+    //   console.log("Перенос предмета:", item, from);
+    //   console.log("Новый слот:", dropSlot);
+    //   // Логика перемещения предмета в новый слот
+    // };
 
-    const getSlotFromEvent = (event) => {
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
-
-      const slots = document.querySelectorAll(".inventory-slot");
-      for (const slot of slots) {
-        const rect = slot.getBoundingClientRect();
-        if (
-          mouseX >= rect.left &&
-          mouseX <= rect.right &&
-          mouseY >= rect.top &&
-          mouseY <= rect.bottom
-        ) {
-          return slot;
-        }
-      }
-      return null;
-    };
-
-    const handleDrop = (group, dropSlot) => {
-      console.log("Перенос предмета:", group);
-      console.log("Новый слот:", dropSlot);
-      // Логика перемещения предмета в новый слот
-    };
-
-    const resetItemPosition = (itemElement) => {
-      itemElement.style.position = "";
-      itemElement.style.zIndex = "";
-      itemElement.style.left = "";
-      itemElement.style.top = "";
-    };
+    // const resetItemPosition = (itemElement: Element) => {
+    //   if (itemElement instanceof HTMLElement) {
+    //     console.log('DROP-FAILED->', itemElement)
+    //     itemElement.style.position = "";
+    //     itemElement.style.zIndex = "";
+    //     itemElement.style.left = "";
+    //     itemElement.style.top = "";
+    //   }
+    // };
 
     // Перетаскиваемый элемент
     // const draggedItem = ref<{from: string, item: InventoryItem} | null>(null);
@@ -456,7 +530,7 @@ export default {
       hideTooltip,
       handleMouseDown,
       //dragStart,
-      handleDrop,
+      // handleDrop,
       isVertical,
       checkOrientation
     };
