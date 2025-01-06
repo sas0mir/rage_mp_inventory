@@ -48,7 +48,8 @@ const mockStackItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 2
+        stackable: 2,
+        type: 'armor_vest'
     },
     {
         id: 3,
@@ -59,7 +60,8 @@ const mockStackItems: InventoryItem[] = [
         size: 1,
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
-        stackable: 5
+        stackable: 5,
+        type: 'medicine'
     }
 ]
 const mockInventoryItems: InventoryItem[] = [
@@ -84,7 +86,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 2
+        stackable: 2,
+        type: 'armor_vest'
     },
     {
         id: 3,
@@ -95,7 +98,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
-        stackable: 5
+        stackable: 5,
+        type: 'medicine'
     },
     {
         id: 1,
@@ -118,7 +122,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 2
+        stackable: 2,
+        type: 'armor_vest'
     },
     {
         id: 3,
@@ -129,7 +134,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
-        stackable: 5
+        stackable: 5,
+        type: 'medicine'
     },
     {
         id: 1,
@@ -144,6 +150,30 @@ const mockInventoryItems: InventoryItem[] = [
         type: 'weapon'
     },
     {
+        id: 4,
+        name: 'AWP',
+        description: 'AWP - снайперская винтовка Британского производства, разработанная в компании Accuracy International.',
+        icon: './items/awp.png',
+        health: 69,
+        size: 1,
+        description_full: 'скорострельность - 10 выстрелов в минуту, магазин на 5 | 10 патронов, дальность стрельбы - 1500 метров',
+        slotable: 3,
+        stackable: 1,
+        type: 'weapon'
+    },
+    {
+        id: 48,
+        name: '9mm боеприпас',
+        description: 'Пистолетный унитарный патрон с бесфланцевой гильзой цилиндрической формы с небольшой конусностью',
+        icon: './items/9mm.png',
+        health: 100,
+        size: 1,
+        description_full: 'Категория: боеприпас. Начальная скорость пули, 350…380м/с Энергия пули, 480-617Дж',
+        slotable: 1,
+        stackable: 3,
+        type: 'ammunition'
+    },
+    {
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
@@ -152,7 +182,8 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 2
+        stackable: 2,
+        type: 'armor_vest'
     },
     {
         id: 3,
@@ -163,8 +194,45 @@ const mockInventoryItems: InventoryItem[] = [
         size: 1,
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
-        stackable: 5
+        stackable: 5,
+        type: 'medicine'
     },
+    {
+        id: 15,
+        name: 'Банка колы',
+        description: 'Категория: еда. Сладкий газированный напиток объемом 0.5л',
+        icon: './items/cola.png',
+        health: 100,
+        size: 1,
+        description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
+        slotable: 1,
+        stackable: 3,
+        type: 'food'
+    },
+    {
+        id: 15,
+        name: 'Банка колы',
+        description: 'Категория: еда. Сладкий газированный напиток объемом 0.5л',
+        icon: './items/cola.png',
+        health: 100,
+        size: 1,
+        description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
+        slotable: 1,
+        stackable: 3,
+        type: 'food'
+    },
+    {
+        id: 15,
+        name: 'Банка колы',
+        description: 'Категория: еда. Сладкий газированный напиток объемом 0.5л',
+        icon: './items/cola.png',
+        health: 100,
+        size: 1,
+        description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
+        slotable: 1,
+        stackable: 3,
+        type: 'food'
+    }
 ]
 
 const mockEquippedItems: EquippedItems = {
