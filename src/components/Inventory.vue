@@ -2,32 +2,29 @@
   <div class="inventory">
     <!-- Список стэша -->
     <section class="inventory-box side-left">
-      <h3>Окружение ({{ inventoryAround.length }})</h3>
+      <h3>Предметы ({{ stack.length }})</h3>
       <div
         class="inventory-container container-column"
         :id="'dropzone_left'"
       >
         <div
-          v-for="group in groupedInventoryAround"
-          :key="group.item.itemId + '-' + group.quantity"
+          v-for="group in groupedStack"
+          :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item"
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
         >
-          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('around', $event, group.item)" :id="'movable_left' + group.item.itemId"/>
+          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('stack', $event, group.item)" :id="'movable_left' + group.item.id"/>
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
         </div>
       </div>
       <!-- Tooltip -->
       <div v-if="tooltipLeftVisible" class="tooltip tooltip-left" :style="tooltipStyle">
         <h4>{{ tooltipItem.name }}</h4>
-        <p>{{ tooltipItem.dtext1 }}</p>
-        <p v-if="tooltipItem.dtext2">{{ tooltipItem.dtext2 }}</p>
-        <p v-if="tooltipItem.dtext3">{{ tooltipItem.dtext3 }}</p>
-        <p v-if="tooltipItem.dtext4">{{ tooltipItem.dtext4 }}</p>
+        <p>{{ tooltipItem.description_full }}</p>
         <div class="tooltip-footer">
           <p>Состояние: {{ tooltipItem.health }}</p>
-          <p>Размер: {{ tooltipItem.itsize }}</p>
+          <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
     </section>
@@ -41,7 +38,7 @@
           <div class="grid grid-two-fraction">
             <div class="slot slot-x3" :id="'dropzone_weapons_left'">
               <img
-                v-if="inventorySlots.weapons && inventorySlots.weapons[0].itemId"
+                v-if="inventorySlots.weapons && inventorySlots.weapons[0].id"
                 :src="inventorySlots.weapons && inventorySlots.weapons[0].icon"
                 :alt="inventorySlots.weapons && inventorySlots.weapons[0].name"
                 @mousedown="handleMouseDown('weapons_right_slot', $event, inventorySlots.weapons[0])"
@@ -49,7 +46,7 @@
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
                 :class="{ rotated: isVertical }"
-                :id="'movable_weapons_left' + inventorySlots.weapons[0].itemId"
+                :id="'movable_weapons_left' + inventorySlots.weapons[0].id"
               />
             </div>
             <div class="slot slot-x3" :id="'dropzone_weapons_right'">
@@ -62,7 +59,7 @@
                 @mouseleave="hideTooltip"
                 @load="checkOrientation"
                 :class="{ rotated: isVertical }"
-                :id="'movable_weapons_right' + inventorySlots.weapons[1].itemId"
+                :id="'movable_weapons_right' + inventorySlots.weapons[1].id"
               />
             </div>
           </div>
@@ -78,18 +75,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.head)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('head', $event, inventorySlots.head)"
-                :id="'movable_head' + inventorySlots.head.itemId"
-              />
-            </div>
-            <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
-              <img
-                v-if="inventorySlots.backpack"
-                :src="inventorySlots.backpack.icon"
-                :alt="inventorySlots.backpack.name"
-                @mouseover="showCenterTooltip(inventorySlots.backpack)"
-                @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('vest', $event, inventorySlots.backpack)"
-                :id="'movable_backpack' + inventorySlots.backpack.itemId"
+                :id="'movable_head' + inventorySlots.head.id"
               />
             </div>
             <div class="slot" :class="{'slot-bg-vest': !inventorySlots.vest}" :id="'dropzone_vest'">
@@ -100,7 +86,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.vest)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('vest', $event, inventorySlots.vest)"
-                :id="'movable_vest' + inventorySlots.vest.itemId"
+                :id="'movable_vest' + inventorySlots.vest.id"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-up': !inventorySlots.clothesUp}" :id="'dropzone_clothesUp'">
@@ -111,7 +97,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesUp)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesUp', $event, inventorySlots.clothesUp)"
-                :id="'movable_clothesUp' + inventorySlots.clothesUp.itemId"
+                :id="'movable_clothesUp' + inventorySlots.clothesUp.id"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-down': !inventorySlots.clothesDown}" :id="'dropzone_clothesDown'">
@@ -122,7 +108,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesDown)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesDown', $event, inventorySlots.clothesDown)"
-                :id="'movable_clothesDown' + inventorySlots.clothesDown.itemId"
+                :id="'movable_clothesDown' + inventorySlots.clothesDown.id"
               />
             </div>
             <div class="slot" :class="{'slot-bg-shoes': !inventorySlots.shoes}" :id="'dropzone_shoes'">
@@ -133,7 +119,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.shoes)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('shoes', $event, inventorySlots.shoes)"
-                :id="'movable_shoes' + inventorySlots.shoes.itemId"
+                :id="'movable_shoes' + inventorySlots.shoes.id"
               />
             </div>
           </div>
@@ -154,7 +140,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.food && inventorySlots.food[i - 1])"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('food', $event, inventorySlots.food[i - 1], i - 1)"
-                :id="'movable_food' + inventorySlots.food[i - 1].itemId"
+                :id="'movable_food' + inventorySlots.food[i - 1].id"
                 />
             </div>
           </div>
@@ -175,7 +161,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.medicine && inventorySlots.medicine[i - 1])"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
-                :id="'movable_medicine' + inventorySlots.medicine[i - 1].itemId"
+                :id="'movable_medicine' + inventorySlots.medicine[i - 1].id"
                 />
             </div>
           </div>
@@ -196,7 +182,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.accesories && inventorySlots.accesories[i - 1])"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
-                :id="'movable_accesories' + inventorySlots.accesories[i - 1].itemId"
+                :id="'movable_accesories' + inventorySlots.accesories[i - 1].id"
                 />
             </div>
           </div>
@@ -205,15 +191,13 @@
       <!-- Tooltip -->
       <div v-if="tooltipCenterVisible" class="tooltip tooltip-left" :style="tooltipStyle">
         <h4>{{ tooltipItem.name }}</h4>
-        <p>{{ tooltipItem.dtext1 }}</p>
-        <p v-if="tooltipItem.dtext2">{{ tooltipItem.dtext2 }}</p>
-        <p v-if="tooltipItem.dtext3">{{ tooltipItem.dtext3 }}</p>
-        <p v-if="tooltipItem.dtext4">{{ tooltipItem.dtext4 }}</p>
+        <p>{{ tooltipItem.description_full }}</p>
         <div class="tooltip-footer">
           <p>Состояние: {{ tooltipItem.health }}</p>
-          <p>Размер: {{ tooltipItem.itsize }}</p>
+          <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
+      <div v-if="draggedItem?.item" class="dropzone_garbage" :id="'dropzone_garbage'"></div>
     </section>
 
     <!-- Рюкзак -->
@@ -222,25 +206,22 @@
       <div class="inventory-container container-column" :id="'dropzone_right'">
         <div
           v-for="group in groupedInventory"
-          :key="group.item.itemId + '-' + group.quantity"
+          :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item items-right"
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
         >
           <p>{{ group.item.name }} (x{{ group.quantity }})</p>
-          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('inventory', $event, group.item)" :id="'movable_right' + group.item.itemId"/>
+          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('inventory', $event, group.item)" :id="'movable_right' + group.item.id"/>
         </div>
       </div>
       <!-- Tooltip -->
       <div v-if="tooltipRightVisible" class="tooltip tooltip-right" :style="tooltipStyle">
         <h4>{{ tooltipItem.name }}</h4>
-        <p>{{ tooltipItem.dtext1 }}</p>
-        <p v-if="tooltipItem.dtext2">{{ tooltipItem.dtext2 }}</p>
-        <p v-if="tooltipItem.dtext3">{{ tooltipItem.dtext3 }}</p>
-        <p v-if="tooltipItem.dtext4">{{ tooltipItem.dtext4 }}</p>
+        <p>{{ tooltipItem.description_full }}</p>
         <div class="tooltip-footer">
           <p>Состояние: {{ tooltipItem.health }}</p>
-          <p>Размер: {{ tooltipItem.itsize }}</p>
+          <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
     </section>
@@ -256,7 +237,7 @@ export default {
   setup() {
     //Данные для рендера 3х блоков инвентаря
     const inventory = ref<InventoryItem[]>([]);
-    const inventoryAround = ref<InventoryItem[]>([]);
+    const stack = ref<InventoryItem[]>([]);
     const inventorySlots = ref<EquippedItems>({});
 
     const loadData = async () => {
@@ -264,9 +245,9 @@ export default {
         //Подгружаем данные из стора или делаем запрос на сервер
         const inventoryItemsStore = useInventoryItemsStore();
         const inventoryItems = inventoryItemsStore.inventoryItems;
-        const aroundItems = inventoryItemsStore.aroundItems;
+        const stackItems = inventoryItemsStore.stackItems;
         const equippedItems = inventoryItemsStore.equippedItems;
-        inventoryAround.value = aroundItems;
+        stack.value = stackItems;
         inventory.value = inventoryItems;
         inventorySlots.value = equippedItems;
       } catch (error) {
@@ -296,19 +277,18 @@ export default {
     onUnmounted(() => {
       //Очищаем данные при уничтожении компонента
       inventory.value = [];
-      inventoryAround.value = [];
+      stack.value = [];
       inventorySlots.value = {};
     })
 
     // Группировка предметов в зависимости от stackable
-    const groupedInventoryAround = computed(() => {
-      const groups: Record<string, { item: InventoryItem; quantity: number }[]> = {};
-      inventoryAround.value.forEach((item) => {
-        if (!groups[item.itemId]) {
-          groups[item.itemId] = [{item, quantity: 1}];
+    const groupedStack = computed(() => {
+      const groups: Record<number, { item: InventoryItem; quantity: number }[]> = {};
+      stack.value.forEach((item) => {
+        if (!groups[item.id]) {
+          groups[item.id] = [];
         }
-        //todo
-        const group = groups[item.itemId];
+        const group = groups[item.id];
         const stackable = item.stackable;
         const slot = group.find((g) => g.quantity < stackable);
         if (slot) {
@@ -320,12 +300,12 @@ export default {
       return Object.values(groups).flat();
     });
     const groupedInventory = computed(() => {
-      const groups: Record<string, { item: InventoryItem; quantity: number }[]> = {};
+      const groups: Record<number, { item: InventoryItem; quantity: number }[]> = {};
       inventory.value.forEach((item) => {
-        if (!groups[item.itemId]) {
-          groups[item.itemId] = [];
+        if (!groups[item.id]) {
+          groups[item.id] = [];
         }
-        const group = groups[item.itemId];
+        const group = groups[item.id];
         const stackable = item.stackable;
         const slot = group.find((g) => g.quantity < stackable);
         if (slot) {
@@ -353,14 +333,14 @@ export default {
     const tooltipRightVisible = ref(false);
     const tooltipCenterVisible = ref(false);
     const tooltipItem = ref<InventoryItem>({
-      name: '',
-      itemId: '',
+      name: '', description_full: '',
+      id: 0,
+      description: '',
       icon: '',
       health: 0,
-      itsize: 0,
+      size: 0,
       slotable: 0,
-      stackable: 0,
-      dtext1: ''
+      stackable: 0
     });
     const tooltipStyle = ref({});
     const showLeftTooltip = (item: InventoryItem) => {
@@ -404,33 +384,37 @@ export default {
       const shiftY = event.clientY - rect.top;
 
       // Удаляем предмет из прошлого расположения (объект inventorySlots | stack | inventory)
-      if (from === 'around') {
-        const delIndex = inventoryAround.value.findIndex((i) => i.itemId === drItem.itemId);
+      if (from === 'stack') {
+        const delIndex = stack.value.findIndex((i) => i.id === drItem.id);
         if (delIndex !== -1) {
-          inventoryAround.value.splice(delIndex, 1);
+          stack.value.splice(delIndex, 1);
         }
       } else if (from === 'inventory') {
-        const delIndex = inventory.value.findIndex((i) => i.itemId === drItem.itemId);
+        const delIndex = inventory.value.findIndex((i) => i.id === drItem.id);
         if (delIndex !== -1) {
           inventory.value.splice(delIndex, 1);
         }
       } else if (from === 'weapons_left_slot' && inventorySlots.value.weapons) {
         inventorySlots.value.weapons[0] = {
           name: '',
-          itemId: '',
+          description_full: '',
+          id: 0,
+          description: '',
           icon: '',
           health: 0,
-          itsize: 0,
+          size: 0,
           slotable: 0,
           stackable: 0
         };
       } else if (from === 'weapons_right_slot' && inventorySlots.value.weapons) {
         inventorySlots.value.weapons[1] = {
           name: '',
-          itemId: '',
+          description_full: '',
+          id: 0,
+          description: '',
           icon: '',
           health: 0,
-          itsize: 0,
+          size: 0,
           slotable: 0,
           stackable: 0
         };
@@ -445,17 +429,17 @@ export default {
       } else if (from === 'shoes') {
         inventorySlots.value.shoes = null;
       } else if (from === 'food') {
-        const delIndex = inventorySlots.value.food ? inventorySlots.value.food.findIndex((i) => i.itemId === drItem.itemId) : -1;
+        const delIndex = inventorySlots.value.food ? inventorySlots.value.food.findIndex((i) => i.id === drItem.id) : -1;
         if (delIndex !== -1 && inventorySlots.value.food) {
           inventorySlots.value.food.splice(delIndex, 1);
         }
       } else if (from === 'medicine') {
-        const delIndex = inventorySlots.value.medicine ? inventorySlots.value.medicine.findIndex((i) => i.itemId === drItem.itemId) : -1;
+        const delIndex = inventorySlots.value.medicine ? inventorySlots.value.medicine.findIndex((i) => i.id === drItem.id) : -1;
         if (delIndex !== -1 && inventorySlots.value.medicine) {
           inventorySlots.value.medicine.splice(delIndex, 1);
         }
       } else if (from === 'accesories') {
-        const delIndex = inventorySlots.value.accesories ? inventorySlots.value.accesories.findIndex((i) => i.itemId === drItem.itemId) : -1;
+        const delIndex = inventorySlots.value.accesories ? inventorySlots.value.accesories.findIndex((i) => i.id === drItem.id) : -1;
         if (delIndex !== -1 && inventorySlots.value.accesories) {
           inventorySlots.value.accesories.splice(delIndex, 1);
         }
@@ -466,11 +450,11 @@ export default {
           item.style.position = "absolute";
           item.style.zIndex = "1000";
           item.style.pointerEvents = "none";
+          document.body.appendChild(item);
           item.style.left = event.pageX - shiftX + 'px';
           item.style.top = event.pageY - shiftY + 'px';
-          item.style.width = '60px';
-          item.style.height = '60px';
-          document.body.appendChild(item);
+          item.style.width = '80px';
+          item.style.height = '80px';
           //подсвечиваем элемент, на который можно положить предмет
           const target = event.target as HTMLElement;
           if (target) {
@@ -506,7 +490,7 @@ export default {
               changeData('delete', drItem, from);
               return;
             } else if (dropzone === 'dropzone_left') {
-              inventoryAround.value.push(drItem);
+              stack.value.push(drItem);
             } else if (dropzone === 'dropzone_right') {
               inventory.value.push(drItem);
             } else if (dropzone === 'dropzone_weapons_left') {
@@ -558,7 +542,7 @@ export default {
             //возвращаем предмет на место если опустили вне слота
             item.remove();
             if (from === 'stack') {
-              inventoryAround.value.push(drItem);
+              stack.value.push(drItem);
             } else if (from === 'inventory') {
               inventory.value.push(drItem);
             } else if (from === 'weapons_left_slot' && inventorySlots.value.weapons) {
@@ -707,9 +691,9 @@ export default {
 
     return {
       inventory,
-      inventoryAround,
+      stack,
       inventorySlots,
-      groupedInventoryAround,
+      groupedStack,
       groupedInventory,
       tooltipLeftVisible,
       tooltipRightVisible,
@@ -931,13 +915,6 @@ export default {
 }
 .slot-bg-head {
   background-image: url('/inventory_slot_helm.png');
-  background-color: rgba(72, 72, 72, 0.75);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-}
-.slot-bg-vest {
-  background-image: url('/inventory_slot_backpack.png');
   background-color: rgba(72, 72, 72, 0.75);
   background-repeat: no-repeat;
   background-position: center;
