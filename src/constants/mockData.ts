@@ -11,7 +11,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
         stackable: 1,
-        category: 'weapon_first'
+        category: 'weapons_first'
     },
     {
         id: 2,
@@ -35,7 +35,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine'
+        category: 'medicine_kit'
     },
     {
         id: 17,
@@ -46,7 +46,7 @@ export const mockAroundItems: InventoryItem[] = [
         size: 19,
         slotable: 1,
         stackable: 19,
-        category: 'backpack_bagxxl'
+        category: 'other_backpack'
     },
 ]
 export const mockInventoryItems: InventoryItem[] = [
@@ -60,7 +60,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
         stackable: 1,
-        category: 'weapon'
+        category: 'weapons_first'
     },
     {
         id: 2,
@@ -72,7 +72,31 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'armor_vest'
+        category: 'clothes_vest'
+    },
+    {
+        id: 54,
+        name: 'Коктейль Молотова',
+        description: 'Лучший друг партизана, бутылка с зажигательной смесью.',
+        icon: './items/molotov.png',
+        health: 100,
+        size: 2,
+        description_full: 'радиус поражения - 10м',
+        slotable: 1,
+        stackable: 2,
+        category: 'weapons_special'
+    },
+    {
+        id: 35,
+        name: 'Револьвер Магнум',
+        description: 'Ревоьвер с мощным магнум патроном.',
+        icon: './items/magnum.png',
+        health: 100,
+        size: 1,
+        description_full: 'радиус поражения - 10м',
+        slotable: 2,
+        stackable: 1,
+        category: 'weapons_second'
     },
     {
         id: 3,
@@ -84,7 +108,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine'
+        category: 'medicine_kit'
     },
     {
         id: 1,
@@ -96,7 +120,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
         stackable: 1,
-        category: 'weapon'
+        category: 'weapons_first'
     },
     {
         id: 2,
@@ -108,7 +132,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'armor_vest'
+        category: 'clothes_vest'
     },
     {
         id: 3,
@@ -120,7 +144,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine'
+        category: 'medicine_kit'
     },
     {
         id: 1,
@@ -132,7 +156,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
         slotable: 3,
         stackable: 1,
-        category: 'weapon'
+        category: 'weapons_first'
     },
     {
         id: 4,
@@ -144,7 +168,18 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'скорострельность - 10 выстрелов в минуту, магазин на 5 | 10 патронов, дальность стрельбы - 1500 метров',
         slotable: 3,
         stackable: 1,
-        category: 'weapon'
+        category: 'weapons_first'
+    },
+    {
+        id: 14,
+        name: 'Рюкзак-Койот',
+        icon: './items/backpack.png',
+        description: 'Рюкзак Койот. Тактический рюкзак средней вместимости, вместимость - 40 слотов',
+        health: 100,
+        size: 40,
+        slotable: 1,
+        stackable: 40,
+        category: 'other_backpack'
     },
     {
         id: 48,
@@ -156,7 +191,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Категория: боеприпас. Начальная скорость пули, 350…380м/с Энергия пули, 480-617Дж',
         slotable: 1,
         stackable: 3,
-        category: 'ammunition'
+        category: 'other_ammo9mm'
     },
     {
         id: 2,
@@ -168,7 +203,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'armor_vest'
+        category: 'clothes_vest'
     },
     {
         id: 3,
@@ -180,7 +215,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine'
+        category: 'medicine_kit'
     },
     {
         id: 15,
@@ -192,7 +227,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food'
+        category: 'food_cola'
     },
     {
         id: 15,
@@ -204,7 +239,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food'
+        category: 'food_cola'
     },
     {
         id: 15,
@@ -216,25 +251,23 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food'
+        category: 'food_cola'
     }
 ]
 
 export const mockEquippedItems: EquippedItems = {
-    weapons: [
-        {
-            id: 1,
-            name: 'AK-47',
-            description: 'AK-47 - это автоматическая винтовка, разработанная в 1947 году Михаилом Калашниковым в СССР.',
-            icon: './items/akm.png',
-            health: 74,
-            size: 1,
-            description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
-            slotable: 3,
-            stackable: 1,
-            category: 'weapon'
-        }
-    ],
+    weapons_first: {
+        id: 1,
+        name: 'AK-47',
+        description: 'AK-47 - это автоматическая винтовка, разработанная в 1947 году Михаилом Калашниковым в СССР.',
+        icon: './items/akm.png',
+        health: 74,
+        size: 1,
+        description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
+        slotable: 3,
+        stackable: 1,
+        category: 'weapons_first'
+    },
     vest: {
         id: 2,
         name: 'Тактический жилет',
@@ -244,18 +277,8 @@ export const mockEquippedItems: EquippedItems = {
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
-        stackable: 2
-    },
-    backpack: {
-        id: 14,
-        name: 'Рюкзак-Койот',
-        icon: './items/backpack.png',
-        description: 'Рюкзак Койот. Тактический рюкзак средней вместимости, вместимость - 40 слотов',
-        health: 100,
-        size: 40,
-        slotable: 1,
-        stackable: 40,
-        category: 'backpack_coyote'
+        stackable: 2,
+        category: 'clothes_vest'
     },
     medicine: [
         {
@@ -267,7 +290,8 @@ export const mockEquippedItems: EquippedItems = {
             size: 1,
             description_full: 'восстанавливает 50% здоровья',
             slotable: 1,
-            stackable: 5
+            stackable: 5,
+            category: 'medicine_kit'
         },
     ]
 }
