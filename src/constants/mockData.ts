@@ -14,6 +14,18 @@ export const mockAroundItems: InventoryItem[] = [
         category: 'weapons_first'
     },
     {
+        id: 1,
+        name: 'AK-47',
+        description: 'AK-47 - это автоматическая винтовка, разработанная в 1947 году Михаилом Калашниковым в СССР.',
+        icon: './items/akm.png',
+        health: 39,
+        size: 1,
+        description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
+        slotable: 3,
+        stackable: 1,
+        category: 'weapons_first'
+    },
+    {
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
@@ -63,18 +75,6 @@ export const mockInventoryItems: InventoryItem[] = [
         category: 'weapons_first'
     },
     {
-        id: 2,
-        name: 'Тактический жилет',
-        description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
-        icon: './bpvest_1.png',
-        health: 75,
-        size: 1,
-        description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
-        slotable: 3,
-        stackable: 2,
-        category: 'clothes_vest'
-    },
-    {
         id: 54,
         name: 'Коктейль Молотова',
         description: 'Лучший друг партизана, бутылка с зажигательной смесью.',
@@ -111,18 +111,6 @@ export const mockInventoryItems: InventoryItem[] = [
         category: 'medicine_kit'
     },
     {
-        id: 1,
-        name: 'AK-47',
-        description: 'AK-47 - это автоматическая винтовка, разработанная в 1947 году Михаилом Калашниковым в СССР.',
-        icon: './items/akm.png',
-        health: 39,
-        size: 1,
-        description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
-        slotable: 3,
-        stackable: 1,
-        category: 'weapons_first'
-    },
-    {
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
@@ -145,18 +133,6 @@ export const mockInventoryItems: InventoryItem[] = [
         slotable: 1,
         stackable: 5,
         category: 'medicine_kit'
-    },
-    {
-        id: 1,
-        name: 'AK-47',
-        description: 'AK-47 - это автоматическая винтовка, разработанная в 1947 году Михаилом Калашниковым в СССР.',
-        icon: './items/akm.png',
-        health: 39,
-        size: 1,
-        description_full: 'скорострельность - 600 выстрелов в минуту, магазин на 30 патронов, дальность стрельбы - 300 метров',
-        slotable: 3,
-        stackable: 1,
-        category: 'weapons_first'
     },
     {
         id: 4,

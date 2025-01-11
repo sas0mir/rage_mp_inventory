@@ -78,18 +78,38 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                         if (itemSubCategory === 'special' && !equippedItems.value.weapons_special) {
                             equippedItems.value.weapons_special = item;
                         }
+                    } else if (itemCategory === 'clothes') {
+                        if (itemSubCategory === 'head' && !equippedItems.value.head) {
+                            equippedItems.value.head = item;
+                        }
+                        if (itemSubCategory === 'vest' && !equippedItems.value.vest) {
+                            equippedItems.value.vest = item;
+                        }
+                        if (itemSubCategory === 'jacket' && !equippedItems.value.clothesUp) {
+                            equippedItems.value.clothesUp = item;
+                        }
+                        if (itemSubCategory === 'pants' && !equippedItems.value.clothesDown) {
+                            equippedItems.value.clothesDown = item;
+                        }
+                        if (itemSubCategory === 'shoes' && !equippedItems.value.shoes) {
+                            equippedItems.value.shoes = item;
+                        }
+                    } else if (itemCategory === 'food') {
+                        if (!equippedItems.value.food) equippedItems.value.food = []
+                        if (equippedItems.value.food.length < 7) {
+                            equippedItems.value.food.push(item)
+                        }
+                    } else if (itemCategory === 'medicine') {
+                        if (!equippedItems.value.medicine) equippedItems.value.medicine = []
+                        if (equippedItems.value.medicine.length < 7) {
+                            equippedItems.value.medicine.push(item)
+                        }
+                    } else if (itemCategory === 'other') {
+                        if (!equippedItems.value.accesories) equippedItems.value.accesories = []
+                        if (equippedItems.value.accesories.length < 7) {
+                            equippedItems.value.accesories.push(item)
+                        }
                     }
-                    console.log('SETTT->',itemCategory, itemSubCategory, equippedItems.value);
-                    // weapons?: InventoryItem[],
-                    // head?: InventoryItem | null,
-                    // vest?: InventoryItem | null,
-                    // clothesUp?: InventoryItem | null,
-                    // clothesDown?: InventoryItem | null,
-                    // shoes?: InventoryItem | null,
-                    // accesories?: InventoryItem[],
-                    // food?: InventoryItem[],
-                    // medicine?: InventoryItem[],
-                    // other?: InventoryItem[],
                 })
             }
         }
