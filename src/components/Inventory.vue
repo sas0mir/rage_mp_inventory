@@ -2,19 +2,23 @@
   <div class="inventory">
     <!-- Список стэша -->
     <section class="inventory-box side-left">
-      <h3>Окружение ({{ around.length }})</h3>
+      <h3>Окружение</h3>
       <div
         class="inventory-container container-column"
         :id="'dropzone_left'"
       >
         <div
-          v-for="group in groupedAround"
+          v-for="(group, idx) in groupedAround"
           :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item"
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
+          @mousedown="handleMouseDown('around', $event, group.item, idx)"
+          :id="'movable_left' + group.item.id"
+          @dblclick="handleDblClick('around', $event, group.item, idx)"
+          @contextmenu="handleRightClick('around', $event, group.item, idx)"
         >
-          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('around', $event, group.item)" :id="'movable_left' + group.item.id"/>
+          <img :src="group.item.icon" :alt="group.item.name"/>
           <p>{{ group.item.name }}</p>
           <label class="inventory-side-label-left">{{ group.quantity }}</label>
         </div>
@@ -42,35 +46,35 @@
             <div
               class="slot slot-x3"
               :class="{with_arrow: inventorySlots.weapons_first && inventorySlots.weapons_first.health > 70}"
-              :id="'dropzone_weapons_left'"
+              :id="'dropzone_weapons_first'"
             >
               <img
                 v-if="inventorySlots.weapons_first?.id"
                 :src="inventorySlots.weapons_first.icon"
                 :alt="inventorySlots.weapons_first.name"
-                @mousedown="handleMouseDown('weapons_left_slot', $event, inventorySlots.weapons_first)"
+                @mousedown="handleMouseDown('weapons_first', $event, inventorySlots.weapons_first)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_first)"
                 @mouseleave="hideTooltip"
-                @load="checkOrientation"
-                :class="{ rotated: isVertical }"
                 :id="'movable_weapons_left' + inventorySlots.weapons_first.id"
+                @dblclick="handleDblClick('weapons_first', $event, inventorySlots.weapons_first)"
+                @contextmenu="handleRightClick('weapons_first', $event, inventorySlots.weapons_first)"
               />
             </div>
             <div
               class="slot slot-x3"
               :class="{with_arrow: inventorySlots.weapons_second && inventorySlots.weapons_second.health > 70}"
-              :id="'dropzone_weapons_right'"
+              :id="'dropzone_weapons_second'"
             >
               <img
                 v-if="inventorySlots.weapons_second?.id"
                 :src="inventorySlots.weapons_second.icon"
                 :alt="inventorySlots.weapons_second.name"
-                @mousedown="handleMouseDown('weapons_right_slot', $event, inventorySlots.weapons_second)"
+                @mousedown="handleMouseDown('weapons_second', $event, inventorySlots.weapons_second)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_second)"
                 @mouseleave="hideTooltip"
-                @load="checkOrientation"
-                :class="{ rotated: isVertical }"
                 :id="'movable_weapons_right' + inventorySlots.weapons_second.id"
+                @dblclick="handleDblClick('weapons_second', $event, inventorySlots.weapons_second)"
+                @contextmenu="handleRightClick('weapons_second', $event, inventorySlots.weapons_second)"
               />
             </div>
           </div>
@@ -78,18 +82,18 @@
             <div
               class="slot slot-x3"
               :class="{with_arrow: inventorySlots.weapons_special && inventorySlots.weapons_special.health > 70}"
-              :id="'dropzone_weapons_center'"
+              :id="'dropzone_weapons_special'"
             >
               <img
                 v-if="inventorySlots.weapons_special?.id"
                 :src="inventorySlots.weapons_special.icon"
                 :alt="inventorySlots.weapons_special.name"
-                @mousedown="handleMouseDown('weapons_center_slot', $event, inventorySlots.weapons_special)"
+                @mousedown="handleMouseDown('weapons_special', $event, inventorySlots.weapons_special)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_special)"
                 @mouseleave="hideTooltip"
-                @load="checkOrientation"
-                :class="{ rotated: isVertical }"
                 :id="'movable_weapons_center' + inventorySlots.weapons_special.id"
+                @dblclick="handleDblClick('weapons_special', $event, inventorySlots.weapons_special)"
+                @contextmenu="handleRightClick('weapons_special', $event, inventorySlots.weapons_special)"
               />
             </div>
           </div>
@@ -106,6 +110,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('head', $event, inventorySlots.head)"
                 :id="'movable_head' + inventorySlots.head.id"
+                @dblclick="handleDblClick('head', $event, inventorySlots.head)"
+                @contextmenu="handleRightClick('weapons_head', $event, inventorySlots.head)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-vest': !inventorySlots.vest}" :id="'dropzone_vest'">
@@ -117,6 +123,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('vest', $event, inventorySlots.vest)"
                 :id="'movable_vest' + inventorySlots.vest.id"
+                @dblclick="handleDblClick('vest', $event, inventorySlots.vest)"
+                @contextmenu="handleRightClick('weapons_vest', $event, inventorySlots.vest)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-up': !inventorySlots.clothesUp}" :id="'dropzone_clothesUp'">
@@ -128,6 +136,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesUp', $event, inventorySlots.clothesUp)"
                 :id="'movable_clothesUp' + inventorySlots.clothesUp.id"
+                @dblclick="handleDblClick('clothesUp', $event, inventorySlots.clothesUp)"
+                @contextmenu="handleRightClick('weapons_clothesUp', $event, inventorySlots.clothesUp)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-down': !inventorySlots.clothesDown}" :id="'dropzone_clothesDown'">
@@ -139,6 +149,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesDown', $event, inventorySlots.clothesDown)"
                 :id="'movable_clothesDown' + inventorySlots.clothesDown.id"
+                @dblclick="handleDblClick('clothesDown', $event, inventorySlots.clothesDown)"
+                @contextmenu="handleRightClick('weapons_clothesDown', $event, inventorySlots.clothesDown)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-shoes': !inventorySlots.shoes}" :id="'dropzone_shoes'">
@@ -149,7 +161,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.shoes)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('shoes', $event, inventorySlots.shoes)"
-                :id="'movable_shoes' + inventorySlots.shoes.id"
+                :id="'movable_shoes'"
+                @dblclick="handleDblClick('shoes', $event, inventorySlots.shoes)"
+                @contextmenu="handleRightClick('weapons_shoes', $event, inventorySlots.shoes)"
               />
             </div>
             <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
@@ -172,7 +186,7 @@
               class="slot"
               v-for="i in 7"
               :key="i"
-              :id="'dropzone_food' + i"
+              :id="`dropzone_food_${i - 1}`"
             >
               <img
                 v-if="inventorySlots.food && inventorySlots.food[i - 1]"
@@ -182,6 +196,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('food', $event, inventorySlots.food[i - 1], i - 1)"
                 :id="'movable_food' + inventorySlots.food[i - 1].id"
+                @dblclick="handleDblClick('food', $event, inventorySlots.food[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_food', $event, inventorySlots.food[i - 1], i - 1)"
                 />
             </div>
           </div>
@@ -193,7 +209,7 @@
               class="slot"
               v-for="i in 7"
               :key="i"
-              :id="'dropzone_medicine' + i"
+              :id="`dropzone_medicine_${i - 1}`"
             >
               <img
                 v-if="inventorySlots.medicine && inventorySlots.medicine[i - 1]"
@@ -203,6 +219,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
                 :id="'movable_medicine' + inventorySlots.medicine[i - 1].id"
+                @dblclick="handleDblClick('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
                 />
             </div>
           </div>
@@ -214,7 +232,7 @@
               class="slot"
               v-for="i in 7"
               :key="i"
-              :id="'dropzone_accesories' + i"
+              :id="`dropzone_accesories_${i - 1}`"
             >
               <img
                 v-if="inventorySlots.accesories && inventorySlots.accesories[i - 1]"
@@ -224,6 +242,8 @@
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
                 :id="'movable_accesories' + inventorySlots.accesories[i - 1].id"
+                @dblclick="handleDblClick('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
                 />
             </div>
           </div>
@@ -240,23 +260,26 @@
           <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
-      <div v-if="draggedItem?.item" class="dropzone_garbage" :id="'dropzone_garbage'"></div>
     </section>
 
     <!-- Рюкзак -->
     <section class="inventory-box side-right">
-      <h3>Палатка ({{ inventorySize + ' / ' + backpackSize }})</h3>
+      <h3>Инвентарь ({{ inventorySize + ' / ' + backpackSize }})</h3>
       <div class="inventory-container container-column" :id="'dropzone_right'">
         <div
-          v-for="group in groupedInventory"
+          v-for="(group, idx) in groupedInventory"
           :key="group.item.id + '-' + group.quantity"
           class="inventory-side-item items-right"
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
+          @mousedown="handleMouseDown('inventory', $event, group.item, idx)"
+          :id="'movable_right' + group.item.id"
+          @dblclick="handleDblClick('inventory', $event, group.item, idx)"
+          @contextmenu="handleRightClick('inventory', $event, group.item, idx)"
         >
           <p>{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
-          <img :src="group.item.icon" :alt="group.item.name" @mousedown="handleMouseDown('inventory', $event, group.item)" :id="'movable_right' + group.item.id"/>
+          <img :src="group.item.icon" :alt="group.item.name"/>
         </div>
       </div>
       <!-- Tooltip -->
@@ -270,13 +293,23 @@
           <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
+      <button class="logger-btn" @click="activateLogger">{{ isActiveLogger ? 'Logger+' : 'Logger-' }}</button>
     </section>
+    <div
+        v-if="showLogger"
+        class="logger"
+        @mouseenter="cancelAutoHideLogger"
+        @mouseleave="returnAutoHideLogger"
+      >
+        <p v-for="(log, index) in logs" :key="index">{{ log }}</p>
+      </div>
   </div>
 </template>
 
 <script lang="ts">
 import { onMounted, ref, computed, onUnmounted, reactive, watch } from "vue";
-import { useInventoryItemsStore, type InventoryItem, type EquippedItems } from "../stores/inventory_items";
+import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
+import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
 
 export default {
@@ -286,21 +319,47 @@ export default {
     const mp = null; 
     //стор для всех данных и работы с ними
     const inventoryItemsStore = useInventoryItemsStore();
+    const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
+    //стор с логами (действия в инвентаре)
+    const loggerStore = useLogger();
+    const { setLog, clearLogs } = loggerStore;
     //Данные для рендера 3х блоков инвентаря
     const inventory = ref<InventoryItem[]>([]);
     const around = ref<InventoryItem[]>([]);
-    const inventorySlots = ref<EquippedItems>({});
+    const inventorySlots = ref<EquippedItems>({
+      weapons_first: null,
+        weapons_second: null,
+        weapons_special: null,
+        head: null,
+        vest: null,
+        clothesUp: null,
+        clothesDown: null,
+        shoes: null,
+        accesories: [],
+        food: [],
+        medicine: [],
+        other: [],
+    });
+    //логгер
+    const logs = ref<string[]>([]);
+    const isActiveLogger = ref(false);
+    const showLogger = ref(false);
+    let hideLoggerTimer: ReturnType<typeof setTimeout>;; //таймер скрытия логов
+    const isLoggerHovered = ref(false);
+    //тип для всех параметров from
+    type ValidFrom = "around" | "inventory" | EquippedItemsKeys;
+
 
     const loadData = async () => {
       try {
         //если мы в игре подгружаем реальные данные
         if (mp) {
-          //inventoryItemsStore.setAround(mp.trigger(получение предметов окружения)); //левый список
-          //inventoryItemsStore.setInventory(получение предметов инвентаря)); //правый список
+          //setAround(mp.trigger(получение предметов окружения)); //левый список
+          //setInventory(получение предметов инвентаря)); //правый список
         } else {
           //Подгружаем мок данные из стора если нет реальных
-          inventoryItemsStore.setAround('init', mockAroundItems);
-          inventoryItemsStore.setInventory('init', mockInventoryItems);
+          setAround('init', mockAroundItems);
+          setInventory('init', mockInventoryItems);
         }
         //если пришла расстановка предметов из игры или есть в сторе то ставим их
         const inGameSlots = null;//mp.trigger(getEquippedItems);
@@ -308,25 +367,10 @@ export default {
           inventorySlots.value = inGameSlots;
         } else {
           //если расставленные слоты не пришли, то заполняем их в setEquippedStore
-          inventoryItemsStore.setEquippedItems('init', inventory.value.length ? inventory.value : []);
+          setEquippedItems('init', inventory.value);
         }
       } catch (error) {
         console.error('Ошибка получения предметов->', error);
-      }
-    }
-
-    const changeData = (action: string, item: InventoryItem, path: string) => {
-      try {
-        //тут можно реализовать изменение данных в сторе или отправку на сервер
-        console.log('action->', action, 'item->', item, 'path->', path);
-        //const inventoryItemsStore = useInventoryItemsStore();
-      if (action === 'delete') {
-        // Удаляем предмет из инвентаря по path
-      } else if (action === 'put') {
-        // Кладем предмет в инвентарь по path
-      }
-      } catch(error) {
-        console.error('Ошибка изменения данных->', error);
       }
     }
 
@@ -338,18 +382,32 @@ export default {
       //Очищаем данные при уничтожении компонента
       inventory.value = [];
       around.value = [];
-      inventorySlots.value = {};
-      inventoryItemsStore.setEquippedItems('clear', []);
-      inventoryItemsStore.setAround('clear', []);
-      inventoryItemsStore.setInventory('clear', []);
+      inventorySlots.value = {
+        weapons_first: null,
+        weapons_second: null,
+        weapons_special: null,
+        head: null,
+        vest: null,
+        clothesUp: null,
+        clothesDown: null,
+        shoes: null,
+        accesories: [],
+        food: [],
+        medicine: [],
+        other: [],
+      };
+      setEquippedItems('clear', []);
+      setAround('clear', []);
+      setInventory('clear', []);
+      clearLogs();
     });
 
     //отслеживаем изменения в сторе и перерисовываем инвентарь
     watch(
       () => inventoryItemsStore.equippedItems,
       (newSlots, oldSlots) => {
-        console.log('WATCH-EQUIP->', newSlots, oldSlots, inventorySlots.value);
-        if (newSlots !== oldSlots || !Object.keys(inventorySlots.value).length) {
+        console.log('WATCH-EQUIP->', newSlots !== oldSlots, inventorySlots.value);
+        if (newSlots !== inventorySlots.value) {
           inventorySlots.value = newSlots;
         }
       }, {deep: true}
@@ -370,6 +428,38 @@ export default {
         }
       }, {deep: true}
     );
+    watch(
+      () => loggerStore.logs,
+      (newLogs, oldLogs) => {
+        logs.value = [...newLogs].reverse();
+        if (newLogs.length && oldLogs && isActiveLogger.value) {
+          showLogger.value = true;
+          startAutoHideLogger();
+        }
+      }, {deep: true}
+    );
+
+    //работа логгера
+    const activateLogger = () => {
+      if (isActiveLogger.value) {
+        showLogger.value = false;
+        isActiveLogger.value = false;
+      } else isActiveLogger.value = true;
+    }
+    const startAutoHideLogger = () => {
+      if (isLoggerHovered.value) return; //курсор на логгере
+      hideLoggerTimer = setTimeout(() => {
+        showLogger.value = false;
+      }, 3000);
+    }
+    const cancelAutoHideLogger = () => {
+      isLoggerHovered.value = true;
+      clearTimeout(hideLoggerTimer);
+    }
+    const returnAutoHideLogger = () => {
+      isLoggerHovered.value = false;
+      startAutoHideLogger();
+    }
 
     //вычисляем количество слотов
     const calcSlots = (size: number, stackable: number, slotable: number) => {
@@ -390,7 +480,7 @@ export default {
     const backpackSize = computed(() => {
       if (inventory.value.length) {
         const biggestBackpack = inventory.value.reduce((max, item) => 
-          item.category === 'other_backpack' && item.size > max.size ? item : max
+          /рюкзак|сумка/ig.test(item.name) && item.size > max.size ? item : max
         )
         return biggestBackpack.size
       } else return 0
@@ -456,7 +546,8 @@ export default {
       health: 0,
       size: 0,
       slotable: 0,
-      stackable: 0
+      stackable: 0,
+      category: ''
     });
     const tooltipStyle = ref({});
     const showLeftTooltip = (item: InventoryItem) => {
@@ -477,211 +568,174 @@ export default {
       tooltipCenterVisible.value = false;
     };
 
+    const checkDropCompatibility = (itemCategory: string, dropzoneCategory: string) => {
+      if (dropzoneCategory === 'dropzone_left' || dropzoneCategory === 'dropzone_right') {
+        return true
+      }
+      const dzCategory = dropzoneCategory.split('_')[1];
+      return itemCategory === dzCategory
+    }
+
     //final dragndrop version
     const draggedElement = ref<HTMLElement | null>(null);
     const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
     const dragOffset = reactive({ x: 0, y: 0 });
+    let clickTimeout: ReturnType<typeof setTimeout>;
 
-    const handleMouseDown = (from: string, event: MouseEvent, drItem: InventoryItem, fromIndex?: number) => {
-      hideTooltip();
-      const target = event.target as HTMLElement;
-      const item = target.closest("[id*='movable']") as HTMLElement;
-      if (!item) return;
-
-      // Устанавливаем перетаскиваемый элемент
-      draggedElement.value = item;
-      draggedItem.value = { from, item: drItem };
-
-      // Сохраняем смещение курсора относительно элемента
-      const rect = item.getBoundingClientRect();
-      dragOffset.x = event.clientX - rect.left;
-      dragOffset.y = event.clientY - rect.top;
-      const shiftX = event.clientX - rect.left;
-      const shiftY = event.clientY - rect.top;
-
-      // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
-      if (from === 'around') {
-        const delIndex = around.value.findIndex((i) => i.id === drItem.id);
-        if (delIndex !== -1) {
-          around.value.splice(delIndex, 1);
-        }
-      } else if (from === 'inventory') {
-        const delIndex = inventory.value.findIndex((i) => i.id === drItem.id);
-        if (delIndex !== -1) {
-          inventory.value.splice(delIndex, 1);
-        }
-      } else if (from === 'weapons_left_slot' && inventorySlots.value.weapons_first) {
-        inventorySlots.value.weapons_first = null;
-      } else if (from === 'weapons_right_slot' && inventorySlots.value.weapons_second) {
-        inventorySlots.value.weapons_second = null;
-      } else if (from === 'weapons_third_slot' && inventorySlots.value.weapons_special) {
-        inventorySlots.value.weapons_special = null;
-      } else if (from === 'head') {
-        inventorySlots.value.head = null;
-      } else if (from === 'vest') {
-        inventorySlots.value.vest = null;
-      } else if (from === 'clothesUp') {
-        inventorySlots.value.clothesUp = null;
-      } else if (from === 'clothesDown') {
-        inventorySlots.value.clothesDown = null;
-      } else if (from === 'shoes') {
-        inventorySlots.value.shoes = null;
-      } else if (from === 'food') {
-        const delIndex = inventorySlots.value.food ? inventorySlots.value.food.findIndex((i) => i.id === drItem.id) : -1;
-        if (delIndex !== -1 && inventorySlots.value.food) {
-          inventorySlots.value.food.splice(delIndex, 1);
-        }
-      } else if (from === 'medicine') {
-        const delIndex = inventorySlots.value.medicine ? inventorySlots.value.medicine.findIndex((i) => i.id === drItem.id) : -1;
-        if (delIndex !== -1 && inventorySlots.value.medicine) {
-          inventorySlots.value.medicine.splice(delIndex, 1);
-        }
-      } else if (from === 'accesories') {
-        const delIndex = inventorySlots.value.accesories ? inventorySlots.value.accesories.findIndex((i) => i.id === drItem.id) : -1;
-        if (delIndex !== -1 && inventorySlots.value.accesories) {
-          inventorySlots.value.accesories.splice(delIndex, 1);
-        }
-      }
-
-      function onMouseMove(event: MouseEvent) {
-          // Переводим элемент в абсолютное позиционирование
-          item.style.position = "absolute";
-          item.style.zIndex = "1000";
-          item.style.pointerEvents = "none";
-          document.body.appendChild(item);
-          item.style.left = event.pageX - shiftX + 'px';
-          item.style.top = event.pageY - shiftY + 'px';
-          item.style.width = '80px';
-          item.style.height = '80px';
-          //подсвечиваем элемент, на который можно положить предмет
+    const handleMouseDown = (from: ValidFrom, event: MouseEvent, drItem: InventoryItem, fromIndex?: number) => {
+      if (event.button === 2) return;
+      clearTimeout(clickTimeout);
+      clickTimeout = setTimeout(() => {
+        if (event.button === 0) {
+          hideTooltip();
           const target = event.target as HTMLElement;
-          if (target) {
-            //тут можно визуализировать что предмет не подходит для этого слота при наведении
-            const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
-            const isDropzone = /^dropzone/i.test(target.id);
-            if(isSideZone) {
-              target.style.border = "2px dashed orange";
-            } else if (isDropzone && !isSideZone) {
-              target.style.borderColor = "orange";
-            }
-            target.onmouseout = () => {
-              if(isSideZone) {
-                target.style.border = "none";
-              } else if (isDropzone && !isSideZone) {
-                target.style.borderColor = "gray";
-              }
-            }
-          }
-      }
-      function onMouseUp(event: MouseEvent) {
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-          const target = event.target as HTMLElement;
-          if (target && /^dropzone/i.test(target.id) && drItem) {
-            item.onmouseup = null;
-            item.style.pointerEvents = "";
-            item.remove();
-            //кладем предмет в слот или боковые контейнеры
-            const dropzone = target.id;
-            if (dropzone === 'dropzone_garbage') {
-              //удаляем предмет
-              changeData('delete', drItem, from);
-              return;
-            } else if (dropzone === 'dropzone_left') {
-              around.value.push(drItem);
-            } else if (dropzone === 'dropzone_right') {
-              inventory.value.push(drItem);
-            } else if (dropzone === 'dropzone_weapons_left') {
-              inventorySlots.value.weapons_first = drItem;
-            } else if (dropzone === 'dropzone_weapons_right') {
-              inventorySlots.value.weapons_second = drItem;
-            } else if (dropzone === 'dropzone_weapons_center') {
-              inventorySlots.value.weapons_special = drItem;
-            }else if (dropzone === 'dropzone_head') {
-              inventorySlots.value.head = drItem;
-            } else if (dropzone === 'dropzone_vest') {
-              inventorySlots.value.vest = drItem;
-            } else if (dropzone === 'dropzone_clothesUp') {
-              inventorySlots.value.clothesUp = drItem;
-            } else if (dropzone === 'dropzone_clothesDown') {
-              inventorySlots.value.clothesDown = drItem;
-            } else if (dropzone === 'dropzone_shoes') {
-              inventorySlots.value.shoes = drItem;
-            } else if (dropzone.includes('dropzone_food')) {
-              if (!inventorySlots.value.food) {
-                inventorySlots.value.food = [];
-              }
-              const putIndex = parseInt(dropzone.replace('dropzone_food', ''));
-              inventorySlots.value.food[putIndex - 1] = drItem;
-            } else if (dropzone.includes('dropzone_medicine')) {
-              if (!inventorySlots.value.medicine) {
-                inventorySlots.value.medicine = [];
-              }
-              const putIndex = parseInt(dropzone.replace('dropzone_medicine', ''));
-              inventorySlots.value.medicine[putIndex - 1] = drItem;
-            } else if (dropzone.includes('dropzone_accesories')) {
-              if (!inventorySlots.value.accesories) {
-                inventorySlots.value.accesories = [];
-              }
-              const putIndex = parseInt(dropzone.replace('dropzone_accesories', ''));
-              inventorySlots.value.accesories[putIndex - 1] = drItem;
-            }
-          } else {
-            //возвращаем предмет на место если опустили вне слота
-            item.remove();
-            if (from === 'stack') {
-              around.value.push(drItem);
-            } else if (from === 'inventory') {
-              inventory.value.push(drItem);
-            } else if (from === 'weapons_left_slot') {
-              inventorySlots.value.weapons_first = drItem;
-            } else if (from === 'weapons_right_slot') {
-              inventorySlots.value.weapons_second = drItem;
-            } else if (from === 'weapons_center_slot') {
-              inventorySlots.value.weapons_special = drItem;
-            } else if (from === 'head') {
-              inventorySlots.value.head = drItem;
-            } else if (from === 'vest') {
-              inventorySlots.value.vest = drItem;
-            } else if (from === 'clothesUp') {
-              inventorySlots.value.clothesUp = drItem;
-            } else if (from === 'clothesDown') {
-              inventorySlots.value.clothesDown = drItem;
-            } else if (from === 'shoes') {
-              inventorySlots.value.shoes = drItem;
-            } else if (from === 'food') {
-              if (!inventorySlots.value.food) {
-                inventorySlots.value.food = [];
-              }
-              if (fromIndex && fromIndex >= 0) {
-                inventorySlots.value.food[fromIndex] = drItem;
-              } else inventorySlots.value.food.push(drItem);
-              
-            } else if (from === 'medicine') {
-              if (!inventorySlots.value.medicine) {
-                inventorySlots.value.medicine = [];
-              }
-              if (fromIndex && fromIndex >= 0) {
-                inventorySlots.value.medicine[fromIndex] = drItem;
-              } else inventorySlots.value.medicine.push(drItem);
-            } else if (from === 'accesories') {
-              if (!inventorySlots.value.accesories) {
-                inventorySlots.value.accesories = [];
-              }
-              if (fromIndex && fromIndex >= 0) {
-                inventorySlots.value.accesories[fromIndex] = drItem;
-              } else inventorySlots.value.accesories.push(drItem);
-            }
-          }
-          draggedItem.value = null;
-          draggedElement.value = null;
-      }
+          const item = target.closest("[id*='movable']") as HTMLElement;
+          if (!item) return;
 
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+          // Устанавливаем перетаскиваемый элемент
+          draggedElement.value = item;
+          draggedItem.value = { from, item: drItem };
+          let movedItemDeleted = false;
 
-      event.preventDefault();
+          // Сохраняем смещение курсора относительно элемента
+          const rect = item.getBoundingClientRect();
+          dragOffset.x = event.clientX - rect.left;
+          dragOffset.y = event.clientY - rect.top;
+          const shiftX = event.clientX - rect.left;
+          const shiftY = event.clientY - rect.top;
+
+          function onMouseMove(event: MouseEvent) {
+              // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
+              if (!movedItemDeleted) {
+                if (from === 'around') {
+                  setAround('delete', [drItem]);
+                  movedItemDeleted = true;
+                } else if (from === 'inventory') {
+                  setInventory('delete', [drItem]);
+                  movedItemDeleted = true;
+                } else {
+                  setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                  movedItemDeleted = true;
+                }
+              }
+              // Переводим элемент в абсолютное позиционирование
+              item.style.position = "absolute";
+              item.style.zIndex = "1000";
+              item.style.pointerEvents = "none";
+              document.body.appendChild(item);
+              item.style.left = event.pageX - shiftX + 'px';
+              item.style.top = event.pageY - shiftY + 'px';
+              item.style.width = '80px';
+              item.style.height = '80px';
+              //подсвечиваем элемент, на который можно положить предмет
+              const target = event.target as HTMLElement;
+              if (target) {
+                //тут можно визуализировать что предмет не подходит для этого слота при наведении
+                const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
+                const isDropzone = /^dropzone/i.test(target.id);
+                const isCompatible = checkDropCompatibility(drItem.category, target.id);
+                if(isSideZone) {
+                  target.style.border = isCompatible ? "2px dashed orange" : "2px dashed red";
+                } else if (isDropzone && !isSideZone) {
+                  target.style.borderColor = isCompatible ? "orange" : "red";
+                }
+                target.onmouseout = () => {
+                  if(isSideZone) {
+                    target.style.border = "none";
+                  } else if (isDropzone && !isSideZone) {
+                    target.style.borderColor = "gray";
+                  }
+                }
+              }
+          }
+          function onMouseUp(event: MouseEvent) {
+              document.removeEventListener('mousemove', onMouseMove);
+              document.removeEventListener('mouseup', onMouseUp);
+              const target = event.target as HTMLElement;
+              if (target && /^dropzone/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
+                item.onmouseup = null;
+                item.style.pointerEvents = "";
+                item.remove();
+                //кладем предмет в слот или боковые контейнеры
+                const dropzone = target.id;
+                if (dropzone === 'dropzone_left') {
+                  setAround('add', [drItem]);
+                } else if (dropzone === 'dropzone_right') {
+                  setInventory('add', [drItem]);
+                } else if (dropzone === 'dropzone_weapons_first') {
+                  setEquippedItems('add', [drItem], 'weapons_first');
+                  //todo if (from === around) setInventory(add, item)++
+                } else if (dropzone === 'dropzone_weapons_second') {
+                  setEquippedItems('add', [drItem], 'weapons_second');
+                } else if (dropzone === 'dropzone_weapons_special') {
+                  setEquippedItems('add', [drItem], 'weapons_special');
+                }else if (dropzone === 'dropzone_head') {
+                  setEquippedItems('add', [drItem], 'head');
+                } else if (dropzone === 'dropzone_vest') {
+                  setEquippedItems('add', [drItem], 'vest');
+                } else if (dropzone === 'dropzone_clothesUp') {
+                  setEquippedItems('add', [drItem], 'clothesUp');
+                } else if (dropzone === 'dropzone_clothesDown') {
+                  setEquippedItems('add', [drItem], 'clothesDown');
+                } else if (dropzone === 'dropzone_shoes') {
+                  setEquippedItems('add', [drItem], 'shoes');
+                } else if (dropzone.includes('dropzone_food')) {
+                  const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
+                  setEquippedItems('add', [drItem], 'food', putIndex);
+                } else if (dropzone.includes('dropzone_medicine')) {
+                  const putIndex = parseInt(dropzone.replace('dropzone_medicine_', ''));
+                  setEquippedItems('add', [drItem], 'medicine', putIndex);
+                } else if (dropzone.includes('dropzone_accesories')) {
+                  const putIndex = parseInt(dropzone.replace('dropzone_accesories_', ''));
+                  setEquippedItems('add', [drItem], 'accesories', putIndex);
+                }
+              } else {
+                //возвращаем предмет на место если опустили вне слота
+                item.remove();
+                if (from === 'around') {
+                  setAround('add', [drItem]);
+                } else if (from === 'inventory') {
+                  setInventory('add', [drItem]);
+                } else {
+                  setEquippedItems('add', [drItem], from, fromIndex);
+                }
+              }
+              setLog(`Перемещение ${drItem.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+              draggedItem.value = null;
+              draggedElement.value = null;
+          }
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+
+          event.preventDefault();
+        }
+      }, 300);
     };
+
+    //использование предмета на даблклик
+    const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
+      clearTimeout(clickTimeout);
+      if (mp) {
+        //mp.trigger(использование предмета)
+        //если мп возвращает промис, то можно использовать async await или then для удаления использованного предмета
+        //удаляем использованный предмет
+        if (from === 'around') {
+          setAround('delete', [item], fromIndex);
+        } else if (from === 'inventory') {
+          setInventory('delete', [item], fromIndex);
+        } else {
+          setEquippedItems('delete', [item], from);
+        }
+        setLog(`Использование ${item.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+      }
+    }
+
+    const handleRightClick = (from: string, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
+      //отменяем вызов браузерного контекстного меню
+      event.preventDefault();
+      console.log('RIGHTCLICK->', from, event.target, item, fromIndex);
+    }
 
     return {
       inventory,
@@ -699,12 +753,21 @@ export default {
       showCenterTooltip,
       hideTooltip,
       handleMouseDown,
+      handleDblClick,
+      handleRightClick,
       isVertical,
       checkOrientation,
       draggedItem,
       calcSlots,
       backpackSize,
-      inventorySize
+      inventorySize, 
+      showLogger,
+      logs,
+      isActiveLogger,
+      activateLogger,
+      startAutoHideLogger,
+      cancelAutoHideLogger,
+      returnAutoHideLogger
     };
   },
 };
@@ -831,11 +894,16 @@ export default {
   display: flex;
   justify-content: left;
   align-items: center;
-  width: 100%;
+  width: 90%;
   height: fit-content;
   margin-bottom: 0.5rem;
+  transition: transform .2s;
   /* padding: 0.6rem; */
   /* background-color: rgba(78, 75, 71, 0.911); */
+}
+.inventory-side-item:hover {
+  cursor: grab;
+  transform: scale(1.1);
 }
 
 .items-right {
@@ -844,7 +912,7 @@ export default {
 
 .inventory-side-item > img {
   width: auto;
-  height: 70px;
+  height: 60px;
   cursor: grab;
   background-color: black;
 }
@@ -887,6 +955,9 @@ export default {
   background-repeat: no-repeat;
   background-position: center;
   background-size: auto 100%; */
+}
+.equipment h4 {
+  text-align: center;
 }
 .equipment-overflow {
   overflow: auto;
@@ -1039,6 +1110,37 @@ export default {
 .tooltip-footer {
   display: flex;
   justify-content: space-between;
+}
+
+/* logger */
+.logger-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  cursor: pointer;
+  font-size: 1rem;
+  color: green;
+  background-color: black;
+  padding: 0.1rem;
+  border-radius: 0.3rem;
+  border: none;
+}
+.logger {
+  position: absolute;
+  bottom: -10rem;
+  right: 1rem;
+  height: 9rem;
+  width: 25rem;
+  background-color: #1b1b1bcb;
+  padding: 0.5rem;
+  overflow: auto;
+  z-index: 1000;
+  transition: opacity 0.3s ease-in-out;
+}
+.logger p {
+  font-family: monospace;
+  color: rgb(12, 176, 12);
+  border-bottom: 1px solid green;
 }
 
 img.rotated {

@@ -35,7 +35,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'clothes_vest'
+        category: 'vest'
     },
     {
         id: 3,
@@ -47,7 +47,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine_kit'
+        category: 'medicine'
     },
     {
         id: 17,
@@ -58,7 +58,7 @@ export const mockAroundItems: InventoryItem[] = [
         size: 19,
         slotable: 1,
         stackable: 19,
-        category: 'other_backpack'
+        category: 'accesories'
     },
 ]
 export const mockInventoryItems: InventoryItem[] = [
@@ -108,7 +108,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine_kit'
+        category: 'medicine'
     },
     {
         id: 2,
@@ -120,7 +120,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'clothes_vest'
+        category: 'vest'
     },
     {
         id: 3,
@@ -132,7 +132,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine_kit'
+        category: 'medicine'
     },
     {
         id: 4,
@@ -155,7 +155,7 @@ export const mockInventoryItems: InventoryItem[] = [
         size: 40,
         slotable: 1,
         stackable: 40,
-        category: 'other_backpack'
+        category: 'accesories'
     },
     {
         id: 48,
@@ -167,7 +167,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Категория: боеприпас. Начальная скорость пули, 350…380м/с Энергия пули, 480-617Дж',
         slotable: 1,
         stackable: 3,
-        category: 'other_ammo9mm'
+        category: 'other'
     },
     {
         id: 2,
@@ -179,7 +179,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'clothes_vest'
+        category: 'vest'
     },
     {
         id: 3,
@@ -191,7 +191,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'восстанавливает 50% здоровья',
         slotable: 1,
         stackable: 5,
-        category: 'medicine_kit'
+        category: 'medicine'
     },
     {
         id: 15,
@@ -203,7 +203,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food_cola'
+        category: 'food'
     },
     {
         id: 15,
@@ -215,7 +215,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food_cola'
+        category: 'food'
     },
     {
         id: 15,
@@ -227,7 +227,7 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Газированный безалкогольный напиток, название напитка относится к двум его оригинальным ингредиентам: листьям коки и орехам кола (источник кофеина)',
         slotable: 1,
         stackable: 3,
-        category: 'food_cola'
+        category: 'food'
     }
 ]
 
@@ -244,6 +244,9 @@ export const mockEquippedItems: EquippedItems = {
         stackable: 1,
         category: 'weapons_first'
     },
+    weapons_second: null,
+    weapons_special: null,
+    head: null,
     vest: {
         id: 2,
         name: 'Тактический жилет',
@@ -254,8 +257,12 @@ export const mockEquippedItems: EquippedItems = {
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
         slotable: 3,
         stackable: 2,
-        category: 'clothes_vest'
+        category: 'vest'
     },
+    clothesUp: null,
+    clothesDown: null,
+    shoes: null,
+    food: [],
     medicine: [
         {
             id: 3,
@@ -267,7 +274,9 @@ export const mockEquippedItems: EquippedItems = {
             description_full: 'восстанавливает 50% здоровья',
             slotable: 1,
             stackable: 5,
-            category: 'medicine_kit'
+            category: 'medicine'
         },
-    ]
+    ],
+    accesories: [],
+    other: []
 }

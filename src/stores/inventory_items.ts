@@ -12,121 +12,158 @@ export interface InventoryItem {
     description_full?: string
     slotable: number //сколько слотов занимает
     stackable: number //сколько помещается в один стак
-    category?: string
+    category: string
 }
 
 export interface EquippedItems {
-    weapons_first?: InventoryItem | null,
-    weapons_second?: InventoryItem | null,
-    weapons_special?: InventoryItem | null,
-    head?: InventoryItem | null,
-    vest?: InventoryItem | null,
-    clothesUp?: InventoryItem | null,
-    clothesDown?: InventoryItem | null,
-    shoes?: InventoryItem | null,
-    accesories?: InventoryItem[],
-    food?: InventoryItem[],
-    medicine?: InventoryItem[],
-    other?: InventoryItem[],
+    weapons_first: InventoryItem | null,
+    weapons_second: InventoryItem | null,
+    weapons_special: InventoryItem | null,
+    head: InventoryItem | null,
+    vest: InventoryItem | null,
+    clothesUp: InventoryItem | null,
+    clothesDown: InventoryItem | null,
+    shoes: InventoryItem | null,
+    accesories: InventoryItem[],
+    food: InventoryItem[],
+    medicine: InventoryItem[],
+    other: InventoryItem[],
 }
+
+export type EquippedItemsKeys = keyof EquippedItems;
 
 export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     const aroundItems = ref<InventoryItem[]>([]);
     const inventoryItems = ref<InventoryItem[]>([]);
-    const equippedItems = ref<EquippedItems>({});
-    function setAround(action: string, items: InventoryItem[]) {
-        console.log('STORE-SET-AROUND->', action, items);
+    const equippedItems = ref<EquippedItems>({
+        weapons_first: null,
+        weapons_second: null,
+        weapons_special: null,
+        head: null,
+        vest: null,
+        clothesUp: null,
+        clothesDown: null,
+        shoes: null,
+        accesories: [],
+        food: [],
+        medicine: [],
+        other: [],
+    });
+
+    function setAround(action: string, items: InventoryItem[], idx?: number) {
+        console.log('STORE-SET-AROUND->', action, items, idx);
         if (action === 'init' && items) {
             aroundItems.value = items;
+        } else if (action === 'delete' && items[0]) {
+            const delIndex = aroundItems.value.findIndex(el => el.id === items[0].id);
+            if (delIndex > -1) aroundItems.value.splice(delIndex, 1);
+        } else if (action === 'clear') {
+            aroundItems.value = [];
+        } else if (action === 'add') {
+            aroundItems.value.push(items[0]);
         }
-        // if (action === 'add') {
-        //     aroundItems.push(item)
-        // } else {
-        //     const index = aroundItems.findIndex((i) => i.id === item.id)
-        //     aroundItems.splice(index, 1, item)
-        // }
     }
-    function setInventory(action: string, items: InventoryItem[]) {
-        console.log('STORE-SET-INVENTORY->', action, items);
+    function setInventory(action: string, items: InventoryItem[], idx?: number) {
+        console.log('STORE-SET-INVENTORY->', action, items, idx);
         if (action === 'init' && items) {
             inventoryItems.value = items;
+        } else if (action === 'delete' && items[0]) {
+            const delIndex = inventoryItems.value.findIndex(el => el.id === items[0].id);
+            if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
+        } else if (action === 'clear') {
+            inventoryItems.value = [];
+        } else if (action === 'add') {
+            inventoryItems.value.push(items[0]);
         }
-        // if (action === 'add') {
-        //     inventoryItems.push(item)
-        // } else {
-        //     const index = inventoryItems.findIndex((i) => i.id === item.id)
-        //     inventoryItems.splice(index, 1, item)
-        // }
     }
-    function setEquippedItems(action: string, items: InventoryItem[], category?: string, index?: number) {
+    function setEquippedItems(action: string, items: InventoryItem[], category?: EquippedItemsKeys, index?: number) {
         console.log('STORE-SET-EQUIPPED->', action, items, category, index);
         //init, clear, add, delete
         if (action === 'init') {
             const inventory = items.length ? items : inventoryItems.value;
+            console.log('STORE-EQUIP-INIT->', inventory);
             if (inventory) {
                 inventory.map(item => {
-                    //разделяем поле category предмета на категорию и саб-категорию чтобы расставить в слоты (category: 'clothes_vest')
-                    const itemCategory = item.category ? item.category.split('_')[0] : '';
-                    const itemSubCategory = item.category ? item.category.split('_')[1] : '';
-                    if (itemCategory === 'weapons') {
-                        if (itemSubCategory === 'first' && !equippedItems.value.weapons_first) {
-                            equippedItems.value.weapons_first = item;
+                    if (
+                        item.category === 'food' ||
+                        item.category === 'medicine' ||
+                        item.category === 'accesories' ||
+                        item.category === 'other'
+                    ) {
+                        if (equippedItems.value[item.category].length < 7) {
+                            equippedItems.value[item.category].push(item)
                         }
-                        if (itemSubCategory === 'second' && !equippedItems.value.weapons_second) {
-                            equippedItems.value.weapons_second = item;
-                        }
-                        if (itemSubCategory === 'special' && !equippedItems.value.weapons_special) {
-                            equippedItems.value.weapons_special = item;
-                        }
-                    } else if (itemCategory === 'clothes') {
-                        if (itemSubCategory === 'head' && !equippedItems.value.head) {
-                            equippedItems.value.head = item;
-                        }
-                        if (itemSubCategory === 'vest' && !equippedItems.value.vest) {
-                            equippedItems.value.vest = item;
-                        }
-                        if (itemSubCategory === 'jacket' && !equippedItems.value.clothesUp) {
-                            equippedItems.value.clothesUp = item;
-                        }
-                        if (itemSubCategory === 'pants' && !equippedItems.value.clothesDown) {
-                            equippedItems.value.clothesDown = item;
-                        }
-                        if (itemSubCategory === 'shoes' && !equippedItems.value.shoes) {
-                            equippedItems.value.shoes = item;
-                        }
-                    } else if (itemCategory === 'food') {
-                        if (!equippedItems.value.food) equippedItems.value.food = []
-                        if (equippedItems.value.food.length < 7) {
-                            equippedItems.value.food.push(item)
-                        }
-                    } else if (itemCategory === 'medicine') {
-                        if (!equippedItems.value.medicine) equippedItems.value.medicine = []
-                        if (equippedItems.value.medicine.length < 7) {
-                            equippedItems.value.medicine.push(item)
-                        }
-                    } else if (itemCategory === 'other') {
-                        if (!equippedItems.value.accesories) equippedItems.value.accesories = []
-                        if (equippedItems.value.accesories.length < 7) {
-                            equippedItems.value.accesories.push(item)
-                        }
+                    } else if (
+                        item.category === 'weapons_first' ||
+                        item.category === 'weapons_second' ||
+                        item.category === 'weapons_special' ||
+                        item.category === 'head' ||
+                        item.category === 'vest' ||
+                        item.category === 'clothesUp' ||
+                        item.category === 'clothesDown' ||
+                        item.category === 'shoes'
+                    ) {
+                        equippedItems.value[item.category] = item;
                     }
                 })
             }
+        } else if (action === 'delete' && items[0] && category) {
+            console.log('STORE-EQUIP-DEL->', category);
+            //сначала удаляем предмет из экипировки (быстрых слотов)
+            if (
+                category === 'food' ||
+                category === 'medicine' ||
+                category === 'accesories' ||
+                category === 'other'
+            ) {
+                const delIndex = index ? index : equippedItems.value[category].findIndex(el => el.id === items[0].id)
+                equippedItems.value[category].splice(delIndex, 1);
+            } else {
+                equippedItems.value[category] = null;
+            }
+            //затем из инвентаря
+            const delIndex = inventoryItems.value.findIndex(el => el.id === items[0].id);
+            if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
+        } else if (action === 'clear') {
+            console.log('STORE-EQUIP-CLEAR->');
+            equippedItems.value = {
+                weapons_first: null,
+                weapons_second: null,
+                weapons_special: null,
+                head: null,
+                vest: null,
+                clothesUp: null,
+                clothesDown: null,
+                shoes: null,
+                accesories: [],
+                food: [],
+                medicine: [],
+                other: [],
+            }
+            if (inventoryItems.value.length) inventoryItems.value = []
+        } else if (action === 'add') {
+            if (
+                category === 'food' ||
+                category === 'medicine' ||
+                category === 'accesories' ||
+                category === 'other'
+            ) {
+                if (index !== undefined) {
+                    equippedItems.value[category].splice(index, 0, items[0]);
+                } else equippedItems.value[category].push(items[0]);
+            } else if (
+                category === 'weapons_first' ||
+                category === 'weapons_second' ||
+                category === 'weapons_special' ||
+                category === 'head' ||
+                category === 'vest' ||
+                category === 'clothesUp' ||
+                category === 'clothesDown' ||
+                category === 'shoes'
+            ) {
+                equippedItems.value[category] = items[0]
+            }
         }
-        // if (action === 'add') {
-        //     if( ['weapons', 'accesories', 'food', 'medicine'].includes(position) ) {
-        //         (equippedItems[position] as InventoryItem[]).push(item)
-        //     } else {
-        //         (equippedItems[position] as InventoryItem) = item
-        //     }
-        // } else {
-        //     if( ['weapons', 'accesories', 'food', 'medicine'].includes(position) ) {
-        //         const index = (equippedItems[position] as InventoryItem[]).findIndex((i) => i.id === item.id);
-        //         (equippedItems[position] as InventoryItem[]).splice(index, 1, item)
-        //     } else {
-        //         (equippedItems[position] as InventoryItem | null) = null;
-        //     }
-        // }
     }
 
     return {
