@@ -19,7 +19,7 @@
           @contextmenu="handleRightClick('around', $event, group.item, idx)"
         >
           <img :src="group.item.icon" :alt="group.item.name"/>
-          <p>{{ group.item.name }}</p>
+          <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-left">{{ group.quantity }}</label>
         </div>
       </div>
@@ -277,7 +277,7 @@
           @dblclick="handleDblClick('inventory', $event, group.item, idx)"
           @contextmenu="handleRightClick('inventory', $event, group.item, idx)"
         >
-          <p>{{ group.item.name }}</p>
+          <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
           <img :src="group.item.icon" :alt="group.item.name"/>
         </div>
@@ -303,6 +303,12 @@
       >
         <p v-for="(log, index) in logs" :key="index">{{ log }}</p>
       </div>
+      <ContextMenu
+        :visible="contextMenuVisible"
+        :position="contextMenuPosition"
+        :from="contextFromProp"
+        :item="contextItemProp"
+      />
   </div>
 </template>
 
@@ -311,9 +317,13 @@ import { onMounted, ref, computed, onUnmounted, reactive, watch } from "vue";
 import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
 import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
+import ContextMenu from "./contextMenu.vue"
 
 export default {
   name: "UserInventory",
+  components: {
+    ContextMenu
+  },
   setup() {
     //тут подключить библиотеку mp
     const mp = null; 
@@ -342,12 +352,17 @@ export default {
     });
     //логгер
     const logs = ref<string[]>([]);
-    const isActiveLogger = ref(false);
+    const isActiveLogger = ref(true);
     const showLogger = ref(false);
     let hideLoggerTimer: ReturnType<typeof setTimeout>;; //таймер скрытия логов
     const isLoggerHovered = ref(false);
     //тип для всех параметров from
     type ValidFrom = "around" | "inventory" | EquippedItemsKeys;
+    //пропсы контекстного меню на правый клик
+    const contextMenuVisible = ref(false);
+    const contextMenuPosition = ref({ top: "0px", left: "0px" });
+    const contextFromProp = ref<string>('');
+    const contextItemProp = ref<InventoryItem>();
 
 
     const loadData = async () => {
@@ -438,6 +453,12 @@ export default {
         }
       }, {deep: true}
     );
+    // watch(
+    //   () => tooltipItem.value,
+    //   (newTooltipiten, oldTooltipitem) => {
+    //     console.log('TOOLTIP->', newTooltipiten, oldTooltipitem, tooltipLeftVisible.value, tooltipRightVisible.value, tooltipCenterVisible.value)
+    //   }
+    // )
 
     //работа логгера
     const activateLogger = () => {
@@ -551,14 +572,17 @@ export default {
     });
     const tooltipStyle = ref({});
     const showLeftTooltip = (item: InventoryItem) => {
+      if (!item) return
       tooltipItem.value = item;
       tooltipLeftVisible.value = true;
     };
     const showRightTooltip = (item: InventoryItem) => {
+      if (!item) return
       tooltipItem.value = item;
       tooltipRightVisible.value = true;
     };
-    const showCenterTooltip = (item: InventoryItem) => {
+    const showCenterTooltip = (item: InventoryItem | null) => {
+      if (!item) return
       tooltipItem.value = item;
       tooltipCenterVisible.value = true;
     };
@@ -568,12 +592,12 @@ export default {
       tooltipCenterVisible.value = false;
     };
 
-    const checkDropCompatibility = (itemCategory: string, dropzoneCategory: string) => {
+    const checkDropCompatibility = (itemCategory: string | undefined, dropzoneCategory: string | undefined) => {
       if (dropzoneCategory === 'dropzone_left' || dropzoneCategory === 'dropzone_right') {
         return true
       }
-      const dzCategory = dropzoneCategory.split('_')[1];
-      return itemCategory === dzCategory
+      if (!dropzoneCategory) return false
+      return itemCategory === dropzoneCategory.split('_')[1];
     }
 
     //final dragndrop version
@@ -583,13 +607,16 @@ export default {
     let clickTimeout: ReturnType<typeof setTimeout>;
 
     const handleMouseDown = (from: ValidFrom, event: MouseEvent, drItem: InventoryItem, fromIndex?: number) => {
+      event.preventDefault();
       if (event.button === 2) return;
       clearTimeout(clickTimeout);
       clickTimeout = setTimeout(() => {
-        if (event.button === 0) {
+        if (event.button === 0 && drItem) {
           hideTooltip();
           const target = event.target as HTMLElement;
           const item = target.closest("[id*='movable']") as HTMLElement;
+          const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
+          const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
           if (!item) return;
 
           // Устанавливаем перетаскиваемый элемент
@@ -614,7 +641,7 @@ export default {
                   setInventory('delete', [drItem]);
                   movedItemDeleted = true;
                 } else {
-                  setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                  setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
                   movedItemDeleted = true;
                 }
               }
@@ -630,14 +657,17 @@ export default {
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
-                //тут можно визуализировать что предмет не подходит для этого слота при наведении
+                if (/^movable/ig.test(target.id)) {
+                  target.style.pointerEvents = 'none';
+                }
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
                 const isDropzone = /^dropzone/i.test(target.id);
-                const isCompatible = checkDropCompatibility(drItem.category, target.id);
+                //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
+                const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if(isSideZone) {
-                  target.style.border = isCompatible ? "2px dashed orange" : "2px dashed red";
+                  target.style.border = isCompatible && isEnoughPlace ? "2px dashed orange" : "2px dashed red";
                 } else if (isDropzone && !isSideZone) {
-                  target.style.borderColor = isCompatible ? "orange" : "red";
+                  target.style.borderColor = isCompatible && isEnoughPlace ? "orange" : "red";
                 }
                 target.onmouseout = () => {
                   if(isSideZone) {
@@ -645,6 +675,7 @@ export default {
                   } else if (isDropzone && !isSideZone) {
                     target.style.borderColor = "gray";
                   }
+                  target.style.pointerEvents = ''
                 }
               }
           }
@@ -656,8 +687,14 @@ export default {
                 item.onmouseup = null;
                 item.style.pointerEvents = "";
                 item.remove();
-                //кладем предмет в слот или боковые контейнеры
+                
                 const dropzone = target.id;
+                //отменяем перенос если места в рюкзаке нет
+                if (from === 'around' && dropzone !== 'dropzone_left' && !isEnoughPlace) {
+                  setAround('add', [drItem]);
+                  setLog(`Перемещение ${drItem?.name} не удалось, рюкзак полон. ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+                }
+                //кладем предмет в слот или боковые контейнеры
                 if (dropzone === 'dropzone_left') {
                   setAround('add', [drItem]);
                 } else if (dropzone === 'dropzone_right') {
@@ -689,6 +726,10 @@ export default {
                   const putIndex = parseInt(dropzone.replace('dropzone_accesories_', ''));
                   setEquippedItems('add', [drItem], 'accesories', putIndex);
                 }
+                //если положили в экипировку, также кладем в инвентарь
+                if (from === 'around' && dropzone !== 'dropzone_right') {
+                  setInventory('add', [drItem])
+                }
               } else {
                 //возвращаем предмет на место если опустили вне слота
                 item.remove();
@@ -700,7 +741,7 @@ export default {
                   setEquippedItems('add', [drItem], from, fromIndex);
                 }
               }
-              setLog(`Перемещение ${drItem.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+              setLog(`Перемещение ${drItem?.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
               draggedItem.value = null;
               draggedElement.value = null;
           }
@@ -727,15 +768,33 @@ export default {
         } else {
           setEquippedItems('delete', [item], from);
         }
-        setLog(`Использование ${item.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+        setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
       }
     }
 
     const handleRightClick = (from: string, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
       //отменяем вызов браузерного контекстного меню
       event.preventDefault();
-      console.log('RIGHTCLICK->', from, event.target, item, fromIndex);
+      const target = event.target as HTMLElement;
+      const rectItem = target.closest("[id*='movable']") as HTMLElement;
+      const rect = rectItem.getBoundingClientRect();
+      const shiftX = event.clientX - rect.left;
+      const shiftY = event.clientY - rect.top;
+      console.log('RIGHTCLICK->', from, event.target, item, fromIndex, event.pageX, shiftX, event.pageY, shiftY);
+      contextFromProp.value = from;
+      contextItemProp.value = item;
+      contextMenuVisible.value = true;
+      contextMenuPosition.value = {
+        top: event.pageY / 2 + 'px',
+        left: event.pageX / 2 + 'px',
+      };
     }
+
+    // Скрыть меню при клике в любом месте
+    const hideContextMenu = () => {
+      contextMenuVisible.value = false;
+    };
+    document.addEventListener("click", hideContextMenu);
 
     return {
       inventory,
@@ -767,7 +826,11 @@ export default {
       activateLogger,
       startAutoHideLogger,
       cancelAutoHideLogger,
-      returnAutoHideLogger
+      returnAutoHideLogger,
+      contextMenuVisible,
+      contextMenuPosition,
+      contextFromProp,
+      contextItemProp
     };
   },
 };

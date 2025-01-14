@@ -22,6 +22,9 @@ export default {
     padding-right: calc(var(--section-gap) / 2);
   }
 }
+div {
+  user-select: none;
+}
 /* Настройка стиля скроллбара */
 ::-webkit-scrollbar {
   width: 1rem; /* Ширина скроллбара */

@@ -50,12 +50,12 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         other: [],
     });
 
-    function setAround(action: string, items: InventoryItem[], idx?: number) {
-        console.log('STORE-SET-AROUND->', action, items, idx);
+    function setAround(action: string, items: InventoryItem[], _idx?: number) {
+        console.log(_idx);
         if (action === 'init' && items) {
             aroundItems.value = items;
         } else if (action === 'delete' && items[0]) {
-            const delIndex = aroundItems.value.findIndex(el => el.id === items[0].id);
+            const delIndex = aroundItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) aroundItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
             aroundItems.value = [];
@@ -63,12 +63,12 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             aroundItems.value.push(items[0]);
         }
     }
-    function setInventory(action: string, items: InventoryItem[], idx?: number) {
-        console.log('STORE-SET-INVENTORY->', action, items, idx);
+    function setInventory(action: string, items: InventoryItem[], _idx?: number) {
+        console.log(_idx);
         if (action === 'init' && items) {
             inventoryItems.value = items;
         } else if (action === 'delete' && items[0]) {
-            const delIndex = inventoryItems.value.findIndex(el => el.id === items[0].id);
+            const delIndex = inventoryItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
             inventoryItems.value = [];
@@ -77,11 +77,9 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         }
     }
     function setEquippedItems(action: string, items: InventoryItem[], category?: EquippedItemsKeys, index?: number) {
-        console.log('STORE-SET-EQUIPPED->', action, items, category, index);
         //init, clear, add, delete
         if (action === 'init') {
             const inventory = items.length ? items : inventoryItems.value;
-            console.log('STORE-EQUIP-INIT->', inventory);
             if (inventory) {
                 inventory.map(item => {
                     if (
@@ -108,7 +106,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 })
             }
         } else if (action === 'delete' && items[0] && category) {
-            console.log('STORE-EQUIP-DEL->', category);
             //сначала удаляем предмет из экипировки (быстрых слотов)
             if (
                 category === 'food' ||
@@ -116,16 +113,15 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 category === 'accesories' ||
                 category === 'other'
             ) {
-                const delIndex = index ? index : equippedItems.value[category].findIndex(el => el.id === items[0].id)
+                const delIndex = equippedItems.value[category].findIndex(el => el && el.id === items[0]?.id);
                 equippedItems.value[category].splice(delIndex, 1);
             } else {
                 equippedItems.value[category] = null;
             }
             //затем из инвентаря
-            const delIndex = inventoryItems.value.findIndex(el => el.id === items[0].id);
+            const delIndex = inventoryItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
-            console.log('STORE-EQUIP-CLEAR->');
             equippedItems.value = {
                 weapons_first: null,
                 weapons_second: null,
