@@ -16,7 +16,7 @@
           @mousedown="handleMouseDown('around', $event, group.item, idx)"
           :id="'movable_left' + group.item.id"
           @dblclick="handleDblClick('around', $event, group.item, idx)"
-          @contextmenu="handleRightClick('around', $event, group.item, idx)"
+          @contextmenu="handleRightClick('around', $event, group.item)"
         >
           <img :src="group.item.icon" :alt="group.item.name"/>
           <p draggable="false">{{ group.item.name }}</p>
@@ -197,7 +197,7 @@
                 @mousedown="handleMouseDown('food', $event, inventorySlots.food[i - 1], i - 1)"
                 :id="'movable_food' + inventorySlots.food[i - 1].id"
                 @dblclick="handleDblClick('food', $event, inventorySlots.food[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_food', $event, inventorySlots.food[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_food', $event, inventorySlots.food[i - 1])"
                 />
             </div>
           </div>
@@ -220,7 +220,7 @@
                 @mousedown="handleMouseDown('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
                 :id="'movable_medicine' + inventorySlots.medicine[i - 1].id"
                 @dblclick="handleDblClick('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_medicine', $event, inventorySlots.medicine[i - 1])"
                 />
             </div>
           </div>
@@ -243,7 +243,7 @@
                 @mousedown="handleMouseDown('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
                 :id="'movable_accesories' + inventorySlots.accesories[i - 1].id"
                 @dblclick="handleDblClick('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
+                @contextmenu="handleRightClick('weapons_accesories', $event, inventorySlots.accesories[i - 1])"
                 />
             </div>
           </div>
@@ -275,7 +275,7 @@
           @mousedown="handleMouseDown('inventory', $event, group.item, idx)"
           :id="'movable_right' + group.item.id"
           @dblclick="handleDblClick('inventory', $event, group.item, idx)"
-          @contextmenu="handleRightClick('inventory', $event, group.item, idx)"
+          @contextmenu="handleRightClick('inventory', $event, group.item)"
         >
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
@@ -303,13 +303,14 @@
       >
         <p v-for="(log, index) in logs" :key="index">{{ log }}</p>
       </div>
-      <ContextMenu
-        :visible="contextMenuVisible"
-        :position="contextMenuPosition"
-        :from="contextFromProp"
-        :item="contextItemProp"
-      />
+      
   </div>
+  <ContextMenu
+      :visible="contextMenuVisible"
+      :position="contextMenuPosition"
+      :from="contextFromProp"
+      :item="contextItemProp"
+    />
 </template>
 
 <script lang="ts">
@@ -362,8 +363,7 @@ export default {
     const contextMenuVisible = ref(false);
     const contextMenuPosition = ref({ top: "0px", left: "0px" });
     const contextFromProp = ref<string>('');
-    const contextItemProp = ref<InventoryItem>();
-
+    const contextItemProp = ref<InventoryItem>({} as InventoryItem);
 
     const loadData = async () => {
       try {
@@ -429,16 +429,16 @@ export default {
     );
     watch(
       () => inventoryItemsStore.aroundItems,
-      (newAround, oldAround) => {
-        if (newAround !== oldAround) {
+      (newAround) => {
+        if (newAround !== around.value) {
           around.value = newAround;
         }
       }, {deep: true}
     );
     watch(
       () => inventoryItemsStore.inventoryItems,
-      (newInventory, oldInventory) => {
-        if (newInventory !== oldInventory) {
+      (newInventory) => {
+        if (newInventory !== inventory.value) {
           inventory.value = newInventory;
         }
       }, {deep: true}
@@ -504,7 +504,7 @@ export default {
           /рюкзак|сумка/ig.test(item.name) && item.size > max.size ? item : max
         )
         return biggestBackpack.size
-      } else return 0
+      } else return 10
     });
 
     //размер всего стака в инвентаре
@@ -772,21 +772,15 @@ export default {
       }
     }
 
-    const handleRightClick = (from: string, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
+    const handleRightClick = (from: string, event: MouseEvent, item: InventoryItem) => {
       //отменяем вызов браузерного контекстного меню
       event.preventDefault();
-      const target = event.target as HTMLElement;
-      const rectItem = target.closest("[id*='movable']") as HTMLElement;
-      const rect = rectItem.getBoundingClientRect();
-      const shiftX = event.clientX - rect.left;
-      const shiftY = event.clientY - rect.top;
-      console.log('RIGHTCLICK->', from, event.target, item, fromIndex, event.pageX, shiftX, event.pageY, shiftY);
       contextFromProp.value = from;
       contextItemProp.value = item;
       contextMenuVisible.value = true;
       contextMenuPosition.value = {
-        top: event.pageY / 2 + 'px',
-        left: event.pageX / 2 + 'px',
+        top: event.clientY + 'px',
+        left: event.clientX + 'px',
       };
     }
 

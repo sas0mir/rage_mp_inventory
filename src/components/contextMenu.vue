@@ -21,7 +21,7 @@ export default defineComponent({
             required: true,
         },
         from: { type: String, required: true },
-        item: { type: Object as PropType<InventoryItem | undefined>, required: true }
+        item: { type: Object as PropType<InventoryItem>, required: true }
     },
     setup(props) {
 
@@ -57,7 +57,7 @@ export default defineComponent({
 .context-menu {
     position: absolute;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.791);
+    background: rgba(116, 130, 121, 0.791);
     border: 1px solid #ddd;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -72,6 +72,8 @@ export default defineComponent({
     border: none;
     padding: 5px 10px;
     cursor: pointer;
+    font-family: "Roboto", serif;
+    text-transform: uppercase;
 }
 
 .context-menu button:hover {
