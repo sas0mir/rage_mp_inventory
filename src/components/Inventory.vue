@@ -839,6 +839,7 @@ export default {
   justify-content: space-between;
   background-color: black;
   width: 60%;
+  height: 45%;
   margin: auto;
   border-radius: 1rem;
   /* padding: 2rem; */
@@ -847,7 +848,9 @@ export default {
 }
 
 .inventory-box {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   position: relative;
   height: 100%;
 }
@@ -884,7 +887,7 @@ export default {
 }
 
 .inventory-box > h3 {
-  height: 10%;
+  /* height: 10%; */
   padding: 0.5rem;
   margin: 1rem;
   border-radius: 1rem;
@@ -916,9 +919,9 @@ export default {
   /* flex-wrap: wrap; */
   /* gap: 1rem; */
   padding: 1rem;
-  margin: 1rem;
-  min-height: 35vh;
-  height: 90%;
+  /* margin: 1rem; */
+  /* min-height: 35vh; */
+  min-height: 90%;
   overflow: auto;
   scrollbar-width: 10px;
   scrollbar-color: #c8c8c8;
