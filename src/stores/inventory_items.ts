@@ -24,10 +24,9 @@ export interface EquippedItems {
     clothesUp: InventoryItem | null,
     clothesDown: InventoryItem | null,
     shoes: InventoryItem | null,
-    accesories: InventoryItem[],
-    food: InventoryItem[],
-    medicine: InventoryItem[],
-    other: InventoryItem[],
+    food: ({ item: InventoryItem; quantity: number } | null)[],
+    medicine: ({ item: InventoryItem; quantity: number } | null)[],
+    other: ({ item: InventoryItem; quantity: number } | null)[],
 }
 
 export type EquippedItemsKeys = keyof EquippedItems;
@@ -44,10 +43,9 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        accesories: [],
-        food: [],
-        medicine: [],
-        other: [],
+        food: [null, null, null, null, null, null, null],
+        medicine: [null, null, null, null, null, null, null],
+        other: [null, null, null, null, null, null],
     });
 
     function setAround(action: string, items: InventoryItem[], _idx?: number) {
@@ -85,11 +83,20 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                     if (
                         item.category === 'food' ||
                         item.category === 'medicine' ||
-                        item.category === 'accesories' ||
                         item.category === 'other'
                     ) {
-                        if (equippedItems.value[item.category].length < 7) {
-                            equippedItems.value[item.category].push(item)
+                        if (equippedItems.value[item.category].length) {
+                            const pushIndex = equippedItems.value[item.category].findIndex((el) => el?.item.name === item.name);
+                            const nullIndex = equippedItems.value[item.category].findIndex((el) => el === null);
+                            if (
+                                pushIndex >= 0 &&
+                                equippedItems.value[item.category][pushIndex] !== null &&
+                                equippedItems.value[item.category][pushIndex]?.quantity
+                            ) {
+                                equippedItems.value[item.category][pushIndex]!.quantity ++
+                            } else if (nullIndex >= 0) {
+                                equippedItems.value[item.category][nullIndex] = ({item, quantity: 1})
+                            }
                         }
                     } else if (
                         item.category === 'weapons_first' ||
@@ -110,16 +117,24 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             if (
                 category === 'food' ||
                 category === 'medicine' ||
-                category === 'accesories' ||
                 category === 'other'
             ) {
-                const delIndex = equippedItems.value[category].findIndex(el => el && el.id === items[0]?.id);
-                equippedItems.value[category].splice(delIndex, 1);
+                const delIndex = index !== undefined && index >= 0 ?
+                    index :
+                    equippedItems.value[category].findIndex(el => el !== null && el.item && el.item.id === items[0]?.id);
+                if (
+                    equippedItems.value[category][delIndex] !== null &&
+                    equippedItems.value[category][delIndex].quantity > 1) 
+                {
+                    equippedItems.value[category].splice(delIndex, 1, {item: items[0], quantity: equippedItems.value[category][delIndex].quantity - 1});
+                } else {
+                    equippedItems.value[category].splice(delIndex, 1);
+                }
             } else {
                 equippedItems.value[category] = null;
             }
             //затем из инвентаря
-            const delIndex = inventoryItems.value.findIndex(el => el && el.id === items[0]?.id);
+            const delIndex = inventoryItems.value.findIndex(el => el && el.name === items[0]?.name);
             if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
             equippedItems.value = {
@@ -131,22 +146,28 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 clothesUp: null,
                 clothesDown: null,
                 shoes: null,
-                accesories: [],
-                food: [],
-                medicine: [],
-                other: [],
+                food: [null, null, null, null, null, null, null],
+                medicine: [null, null, null, null, null, null, null],
+                other: [null, null, null, null, null, null],
             }
             if (inventoryItems.value.length) inventoryItems.value = []
         } else if (action === 'add') {
+            console.log('ADDD->', category, index, items[0].name);
             if (
                 category === 'food' ||
                 category === 'medicine' ||
-                category === 'accesories' ||
                 category === 'other'
             ) {
-                if (index !== undefined) {
-                    equippedItems.value[category].splice(index, 0, items[0]);
-                } else equippedItems.value[category].push(items[0]);
+                if (index !== undefined && equippedItems.value[category][index] === null) {
+                    equippedItems.value[category].splice(index, 1, {item: items[0], quantity: 1});
+                } else if (index !== undefined && equippedItems.value[category][index]?.quantity) {
+                    //если слот занят
+                    if (equippedItems.value[category][index].item.name === items[0].name) {
+                        equippedItems.value[category][index].quantity ++;
+                    } else {
+                        equippedItems.value[category][index] = {item: items[0], quantity: 1}
+                    }
+                }
             } else if (
                 category === 'weapons_first' ||
                 category === 'weapons_second' ||
@@ -159,6 +180,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             ) {
                 equippedItems.value[category] = items[0]
             }
+            inventoryItems.value.push(items[0]);
         }
     }
 

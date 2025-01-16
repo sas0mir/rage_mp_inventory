@@ -42,6 +42,7 @@ export default defineComponent({
         const dropItem = () => {
             if (props.from === 'around' || !props.item) return
             setAround('add', [props.item])
+            //for delete search for lowest quantity item index and delete
         };
 
         return {

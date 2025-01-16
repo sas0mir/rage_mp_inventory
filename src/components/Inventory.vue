@@ -55,7 +55,7 @@
                 @mousedown="handleMouseDown('weapons_first', $event, inventorySlots.weapons_first)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_first)"
                 @mouseleave="hideTooltip"
-                :id="'movable_weapons_left' + inventorySlots.weapons_first.id"
+                :id="'movable_weapons_first'"
                 @dblclick="handleDblClick('weapons_first', $event, inventorySlots.weapons_first)"
                 @contextmenu="handleRightClick('weapons_first', $event, inventorySlots.weapons_first)"
               />
@@ -72,7 +72,7 @@
                 @mousedown="handleMouseDown('weapons_second', $event, inventorySlots.weapons_second)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_second)"
                 @mouseleave="hideTooltip"
-                :id="'movable_weapons_right' + inventorySlots.weapons_second.id"
+                :id="'movable_weapons_second'"
                 @dblclick="handleDblClick('weapons_second', $event, inventorySlots.weapons_second)"
                 @contextmenu="handleRightClick('weapons_second', $event, inventorySlots.weapons_second)"
               />
@@ -91,7 +91,7 @@
                 @mousedown="handleMouseDown('weapons_special', $event, inventorySlots.weapons_special)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_special)"
                 @mouseleave="hideTooltip"
-                :id="'movable_weapons_center' + inventorySlots.weapons_special.id"
+                :id="'movable_weapons_special'"
                 @dblclick="handleDblClick('weapons_special', $event, inventorySlots.weapons_special)"
                 @contextmenu="handleRightClick('weapons_special', $event, inventorySlots.weapons_special)"
               />
@@ -109,9 +109,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.head)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('head', $event, inventorySlots.head)"
-                :id="'movable_head' + inventorySlots.head.id"
+                :id="'movable_head'"
                 @dblclick="handleDblClick('head', $event, inventorySlots.head)"
-                @contextmenu="handleRightClick('weapons_head', $event, inventorySlots.head)"
+                @contextmenu="handleRightClick('head', $event, inventorySlots.head)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-vest': !inventorySlots.vest}" :id="'dropzone_vest'">
@@ -122,9 +122,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.vest)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('vest', $event, inventorySlots.vest)"
-                :id="'movable_vest' + inventorySlots.vest.id"
+                :id="'movable_vest'"
                 @dblclick="handleDblClick('vest', $event, inventorySlots.vest)"
-                @contextmenu="handleRightClick('weapons_vest', $event, inventorySlots.vest)"
+                @contextmenu="handleRightClick('vest', $event, inventorySlots.vest)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-up': !inventorySlots.clothesUp}" :id="'dropzone_clothesUp'">
@@ -135,9 +135,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesUp)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesUp', $event, inventorySlots.clothesUp)"
-                :id="'movable_clothesUp' + inventorySlots.clothesUp.id"
+                :id="'movable_clothesUp'"
                 @dblclick="handleDblClick('clothesUp', $event, inventorySlots.clothesUp)"
-                @contextmenu="handleRightClick('weapons_clothesUp', $event, inventorySlots.clothesUp)"
+                @contextmenu="handleRightClick('clothesUp', $event, inventorySlots.clothesUp)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-down': !inventorySlots.clothesDown}" :id="'dropzone_clothesDown'">
@@ -148,9 +148,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesDown)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('clothesDown', $event, inventorySlots.clothesDown)"
-                :id="'movable_clothesDown' + inventorySlots.clothesDown.id"
+                :id="'movable_clothesDown'"
                 @dblclick="handleDblClick('clothesDown', $event, inventorySlots.clothesDown)"
-                @contextmenu="handleRightClick('weapons_clothesDown', $event, inventorySlots.clothesDown)"
+                @contextmenu="handleRightClick('clothesDown', $event, inventorySlots.clothesDown)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-shoes': !inventorySlots.shoes}" :id="'dropzone_shoes'">
@@ -163,7 +163,7 @@
                 @mousedown="handleMouseDown('shoes', $event, inventorySlots.shoes)"
                 :id="'movable_shoes'"
                 @dblclick="handleDblClick('shoes', $event, inventorySlots.shoes)"
-                @contextmenu="handleRightClick('weapons_shoes', $event, inventorySlots.shoes)"
+                @contextmenu="handleRightClick('shoes', $event, inventorySlots.shoes)"
               />
             </div>
             <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
@@ -184,21 +184,28 @@
           <div class="grid">
             <div
               class="slot"
-              v-for="i in 7"
-              :key="i"
-              :id="`dropzone_food_${i - 1}`"
+              v-for="(item, idx) in inventorySlots.food"
+              :key="idx"
+              :id="`dropzone_food_${idx}`"
             >
-              <img
-                v-if="inventorySlots.food && inventorySlots.food[i - 1]"
-                :src="inventorySlots.food && inventorySlots.food[i - 1].icon"
-                :alt="inventorySlots.food && inventorySlots.food[i - 1].name"
-                @mouseover="showCenterTooltip(inventorySlots.food && inventorySlots.food[i - 1])"
-                @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('food', $event, inventorySlots.food[i - 1], i - 1)"
-                :id="'movable_food' + inventorySlots.food[i - 1].id"
-                @dblclick="handleDblClick('food', $event, inventorySlots.food[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_food', $event, inventorySlots.food[i - 1])"
+              <template v-if="item?.item">
+                <img
+                  v-if="item?.item"
+                  :src="item.item.icon"
+                  :alt="item.item.name"
+                  @mouseover="showCenterTooltip(item.item)"
+                  @mouseleave="hideTooltip"
+                  @mousedown="handleMouseDown('food', $event, item.item, idx)"
+                  :id="'movable_food' + idx"
+                  @dblclick="handleDblClick('food', $event, item.item, idx)"
+                  @contextmenu="handleRightClick('food', $event, item.item)"
                 />
+                <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
+              </template>
+              <template v-else>
+                <!-- пустой слот -->
+                 <div class="empty-slot"></div>
+              </template>
             </div>
           </div>
         </div>
@@ -207,44 +214,58 @@
           <div class="grid">
             <div
               class="slot"
-              v-for="i in 7"
-              :key="i"
-              :id="`dropzone_medicine_${i - 1}`"
+              v-for="(item, idx) in inventorySlots.medicine"
+              :key="idx"
+              :id="`dropzone_medicine_${idx}`"
             >
-              <img
-                v-if="inventorySlots.medicine && inventorySlots.medicine[i - 1]"
-                :src="inventorySlots.medicine && inventorySlots.medicine[i - 1].icon"
-                :alt="inventorySlots.medicine && inventorySlots.medicine[i - 1].name"
-                @mouseover="showCenterTooltip(inventorySlots.medicine && inventorySlots.medicine[i - 1])"
-                @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
-                :id="'movable_medicine' + inventorySlots.medicine[i - 1].id"
-                @dblclick="handleDblClick('medicine', $event, inventorySlots.medicine[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_medicine', $event, inventorySlots.medicine[i - 1])"
+              <template v-if="item?.item">
+                <img
+                  v-if="item?.item"
+                  :src="item.item.icon"
+                  :alt="item.item.name"
+                  @mouseover="showCenterTooltip(item.item)"
+                  @mouseleave="hideTooltip"
+                  @mousedown="handleMouseDown('medicine', $event, item.item, idx)"
+                  :id="'movable_medicine' + idx"
+                  @dblclick="handleDblClick('medicine', $event, item.item, idx)"
+                  @contextmenu="handleRightClick('medicine', $event, item.item)"
                 />
+                <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
+              </template>
+              <template v-else>
+                <!-- пустой слот -->
+                 <div class="empty-slot"></div>
+              </template>
             </div>
           </div>
         </div>
         <div class="equipment equipment-accesories">
-          <h4>Аксессуары</h4>
+          <h4></h4>
           <div class="grid">
             <div
               class="slot"
-              v-for="i in 7"
-              :key="i"
-              :id="`dropzone_accesories_${i - 1}`"
+              v-for="(item, idx) in inventorySlots.other"
+              :key="idx"
+              :id="`dropzone_other_${idx}`"
             >
-              <img
-                v-if="inventorySlots.accesories && inventorySlots.accesories[i - 1]"
-                :src="inventorySlots.accesories && inventorySlots.accesories[i - 1].icon"
-                :alt="inventorySlots.accesories && inventorySlots.accesories[i - 1].name"
-                @mouseover="showCenterTooltip(inventorySlots.accesories && inventorySlots.accesories[i - 1])"
-                @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
-                :id="'movable_accesories' + inventorySlots.accesories[i - 1].id"
-                @dblclick="handleDblClick('accesories', $event, inventorySlots.accesories[i - 1], i - 1)"
-                @contextmenu="handleRightClick('weapons_accesories', $event, inventorySlots.accesories[i - 1])"
+              <template v-if="item?.item">
+                <img
+                  v-if="item?.item"
+                  :src="item.item.icon"
+                  :alt="item.item.name"
+                  @mouseover="showCenterTooltip(item.item)"
+                  @mouseleave="hideTooltip"
+                  @mousedown="handleMouseDown('other', $event, item.item, idx)"
+                  :id="'movable_other' + idx"
+                  @dblclick="handleDblClick('other', $event, item.item, idx)"
+                  @contextmenu="handleRightClick('other', $event, item.item)"
                 />
+                <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
+              </template>
+              <template v-else>
+                <!-- пустой слот -->
+                 <div class="empty-slot"></div>
+              </template>
             </div>
           </div>
         </div>
@@ -319,6 +340,7 @@ import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type Eq
 import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
 import ContextMenu from "./contextMenu.vue"
+import { storeToRefs } from "pinia";
 
 export default {
   name: "UserInventory",
@@ -331,6 +353,7 @@ export default {
     //стор для всех данных и работы с ними
     const inventoryItemsStore = useInventoryItemsStore();
     const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
+    const { equippedItems, aroundItems, inventoryItems } = storeToRefs(inventoryItemsStore)
     //стор с логами (действия в инвентаре)
     const loggerStore = useLogger();
     const { setLog, clearLogs } = loggerStore;
@@ -346,10 +369,9 @@ export default {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        accesories: [],
-        food: [],
-        medicine: [],
-        other: [],
+        food: [null, null, null, null, null, null, null],
+        medicine: [null, null, null, null, null, null, null],
+        other: [null, null, null, null, null, null],
     });
     //логгер
     const logs = ref<string[]>([]);
@@ -406,7 +428,6 @@ export default {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        accesories: [],
         food: [],
         medicine: [],
         other: [],
@@ -417,29 +438,36 @@ export default {
       clearLogs();
     });
 
+    watch(
+      () => inventorySlots.value.food,
+      (newFood) => {
+        console.log('FOOD->', newFood[0], newFood)
+      }, {deep: true}
+    )
+
     //отслеживаем изменения в сторе и перерисовываем инвентарь
     watch(
-      () => inventoryItemsStore.equippedItems,
-      (newSlots, oldSlots) => {
-        console.log('WATCH-EQUIP->', newSlots !== oldSlots, inventorySlots.value);
-        if (newSlots !== inventorySlots.value) {
-          inventorySlots.value = newSlots;
+      () => equippedItems,
+      (newSlots) => {
+        if (newSlots.value) {
+          console.log('WATCH-EQUIP-1->', newSlots.value.food);
+          inventorySlots.value = {...newSlots.value};
         }
       }, {deep: true}
     );
     watch(
-      () => inventoryItemsStore.aroundItems,
+      () => aroundItems,
       (newAround) => {
-        if (newAround !== around.value) {
-          around.value = newAround;
+        if (newAround.value) {
+          around.value = newAround.value;
         }
       }, {deep: true}
     );
     watch(
-      () => inventoryItemsStore.inventoryItems,
+      () => inventoryItems,
       (newInventory) => {
-        if (newInventory !== inventory.value) {
-          inventory.value = newInventory;
+        if (newInventory.value) {
+          inventory.value = newInventory.value;
         }
       }, {deep: true}
     );
@@ -572,17 +600,17 @@ export default {
     });
     const tooltipStyle = ref({});
     const showLeftTooltip = (item: InventoryItem) => {
-      if (!item) return
+      if (!item || draggedElement.value) return
       tooltipItem.value = item;
       tooltipLeftVisible.value = true;
     };
     const showRightTooltip = (item: InventoryItem) => {
-      if (!item) return
+      if (!item || draggedElement.value) return
       tooltipItem.value = item;
       tooltipRightVisible.value = true;
     };
     const showCenterTooltip = (item: InventoryItem | null) => {
-      if (!item) return
+      if (!item || draggedElement.value) return
       tooltipItem.value = item;
       tooltipCenterVisible.value = true;
     };
@@ -596,8 +624,8 @@ export default {
       if (dropzoneCategory === 'dropzone_left' || dropzoneCategory === 'dropzone_right') {
         return true
       }
-      if (!dropzoneCategory) return false
-      return itemCategory === dropzoneCategory.split('_')[1];
+      if (!dropzoneCategory || !itemCategory) return false
+      return dropzoneCategory.includes(itemCategory);
     }
 
     //final dragndrop version
@@ -657,7 +685,9 @@ export default {
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
+                console.log('TARGET->', target.id);
                 if (/^movable/ig.test(target.id)) {
+                  console.log('NO-POINTER');
                   target.style.pointerEvents = 'none';
                 }
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
@@ -675,7 +705,9 @@ export default {
                   } else if (isDropzone && !isSideZone) {
                     target.style.borderColor = "gray";
                   }
-                  target.style.pointerEvents = ''
+                  if (/^movable/ig.test(target.id)) {
+                    target.style.pointerEvents = 'auto'
+                  }
                 }
               }
           }
@@ -685,7 +717,8 @@ export default {
               const target = event.target as HTMLElement;
               if (target && /^dropzone/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
                 item.onmouseup = null;
-                item.style.pointerEvents = "";
+                item.style.pointerEvents = "auto";
+                //target.appendChild(item);
                 item.remove();
                 
                 const dropzone = target.id;
@@ -723,13 +756,13 @@ export default {
                   const putIndex = parseInt(dropzone.replace('dropzone_medicine_', ''));
                   setEquippedItems('add', [drItem], 'medicine', putIndex);
                 } else if (dropzone.includes('dropzone_accesories')) {
-                  const putIndex = parseInt(dropzone.replace('dropzone_accesories_', ''));
-                  setEquippedItems('add', [drItem], 'accesories', putIndex);
+                  const putIndex = parseInt(dropzone.replace('dropzone_other_', ''));
+                  setEquippedItems('add', [drItem], 'other', putIndex);
                 }
                 //если положили в экипировку, также кладем в инвентарь
-                if (from === 'around' && dropzone !== 'dropzone_right') {
-                  setInventory('add', [drItem])
-                }
+                // if (from === 'around' && dropzone !== 'dropzone_right') {
+                //   setInventory('add', [drItem])
+                // }
               } else {
                 //возвращаем предмет на место если опустили вне слота
                 item.remove();
@@ -918,7 +951,7 @@ export default {
   display: flex;
   /* flex-wrap: wrap; */
   /* gap: 1rem; */
-  padding: 1rem;
+  margin: 1rem;
   /* margin: 1rem; */
   /* min-height: 35vh; */
   min-height: 90%;
@@ -1035,6 +1068,15 @@ export default {
   background-position: center;
   background-size: 100% 100%;
 }
+.equipment-quantity-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: black;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+}
 
 .grid {
   display: grid;
@@ -1055,6 +1097,7 @@ export default {
 }
 
 .slot {
+  position: relative;
   width: 60px;
   height: 60px;
   background: rgba(0, 0, 0, 0.1);

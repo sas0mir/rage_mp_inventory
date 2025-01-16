@@ -58,7 +58,7 @@ export const mockAroundItems: InventoryItem[] = [
         size: 19,
         slotable: 1,
         stackable: 19,
-        category: 'accesories'
+        category: 'other'
     },
 ]
 export const mockInventoryItems: InventoryItem[] = [
@@ -155,7 +155,7 @@ export const mockInventoryItems: InventoryItem[] = [
         size: 40,
         slotable: 1,
         stackable: 40,
-        category: 'accesories'
+        category: 'other'
     },
     {
         id: 48,
@@ -262,21 +262,24 @@ export const mockEquippedItems: EquippedItems = {
     clothesUp: null,
     clothesDown: null,
     shoes: null,
-    food: [],
+    food: [null, null, null, null, null, null, null],
     medicine: [
+        null, null, null, null, null, null,
         {
-            id: 3,
-            name: 'Аптечка',
-            description: 'Аптечка - это медицинский инструмент, который используется для лечения ран и травм.',
-            icon: './medkit_1.png',
-            health: 100,
-            size: 1,
-            description_full: 'восстанавливает 50% здоровья',
-            slotable: 1,
-            stackable: 5,
-            category: 'medicine'
-        },
+            item: {
+                id: 3,
+                name: 'Аптечка',
+                description: 'Аптечка - это медицинский инструмент, который используется для лечения ран и травм.',
+                icon: './medkit_1.png',
+                health: 100,
+                size: 1,
+                description_full: 'восстанавливает 50% здоровья',
+                slotable: 1,
+                stackable: 5,
+                category: 'medicine'
+            },
+            quantity: 1
+        }
     ],
-    accesories: [],
-    other: []
+    other: [null, null, null, null, null, null]
 }
