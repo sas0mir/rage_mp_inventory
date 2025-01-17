@@ -435,19 +435,11 @@ export default {
       clearLogs();
     });
 
-    watch(
-      () => inventorySlots.value.food,
-      (newFood) => {
-        console.log('FOOD->', newFood[0], newFood)
-      }, {deep: true}
-    )
-
     //отслеживаем изменения в сторе и перерисовываем инвентарь
     watch(
       () => equippedItems,
       (newSlots) => {
         if (newSlots.value) {
-          console.log('WATCH-EQUIP-1->', newSlots.value.food);
           inventorySlots.value = {...newSlots.value};
         }
       }, {deep: true}
@@ -478,12 +470,6 @@ export default {
         }
       }, {deep: true}
     );
-    // watch(
-    //   () => tooltipItem.value,
-    //   (newTooltipiten, oldTooltipitem) => {
-    //     console.log('TOOLTIP->', newTooltipiten, oldTooltipitem, tooltipLeftVisible.value, tooltipRightVisible.value, tooltipCenterVisible.value)
-    //   }
-    // )
 
     //работа логгера
     const activateLogger = () => {
@@ -625,6 +611,15 @@ export default {
       return dropzoneCategory.includes(itemCategory);
     }
 
+    const isItemEquipped = (item: InventoryItem) => {
+      const slot = inventorySlots.value[item.category as EquippedItemsKeys];
+      if (Array.isArray(slot)) {
+        return slot.findIndex((el: {item: InventoryItem, quantity: number} | null) => el !== null && el.item.name === item.name) >= 0;
+      } else {
+        return slot?.name === item.name
+      }
+    }
+
     //final dragndrop version
     const draggedElement = ref<HTMLElement | null>(null);
     const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
@@ -639,24 +634,16 @@ export default {
         if (event.button === 0 && drItem) {
           hideTooltip();
           const target = event.target as HTMLElement;
-          const item = target.closest("[id*='movable']") as HTMLElement;
+          let item = target.closest("[id*='movable']") as HTMLElement;
           const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
           const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
           if (!item) return;
-
-          //проверяем что предмет не один в слоте
-          if(
-            from === 'food' ||
-            from === 'medicine' ||
-            from === 'other'
-          ) {
-            //equippedItems.value[from][fromIndex] todo
-          }
 
           // Устанавливаем перетаскиваемый элемент
           draggedElement.value = item;
           draggedItem.value = { from, item: drItem };
           let movedItemDeleted = false;
+          let isItemCloned = false;
 
           // Сохраняем смещение курсора относительно элемента
           const rect = item.getBoundingClientRect();
@@ -673,10 +660,25 @@ export default {
                   movedItemDeleted = true;
                 } else if (from === 'inventory') {
                   setInventory('delete', [drItem]);
+                  if (isItemEquipped(drItem)) {
+                    setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                  }
                   movedItemDeleted = true;
                 } else {
                   setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
                   movedItemDeleted = true;
+                }
+              }
+              //проверяем что предмет не один в слоте
+              if(
+                (from === 'food' ||
+                from === 'medicine' ||
+                from === 'other') &&
+                equippedItems.value[from][fromIndex!] !== undefined
+              ) {
+                if (equippedItems.value[from][fromIndex!]!.quantity > 1 && !isItemCloned) {
+                  item = item.cloneNode(true) as HTMLElement;
+                  isItemCloned = true;
                 }
               }
               // Переводим элемент в абсолютное позиционирование
@@ -708,7 +710,7 @@ export default {
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
-                console.log('TARGET->', target.id);
+                //console.log('TARGET->', target.id);
                 if (/^movable/ig.test(target.id)) {
                   console.log('NO-POINTER');
                   target.style.pointerEvents = 'none';
@@ -897,7 +899,7 @@ export default {
   justify-content: space-between;
   background-color: black;
   width: 60%;
-  height: 45%;
+  height: 55%;
   margin: auto;
   border-radius: 1rem;
   /* padding: 2rem; */
@@ -1266,7 +1268,7 @@ img.rotated {
 
 @media(max-width: 2560px) {
   .inventory {
-    height: 50%;
+    height: 55%;
   }
   .inventory-box > h3 {
     font-size: 1rem;
@@ -1324,7 +1326,7 @@ img.rotated {
 
 @media(max-width: 1920px) {
   .inventory {
-    height: 50%;
+    height: 55%;
   }
   .inventory-box > h3 {
     font-size: 0.9rem;
