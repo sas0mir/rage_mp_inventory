@@ -27,7 +27,7 @@ div {
 }
 /* Настройка стиля скроллбара */
 ::-webkit-scrollbar {
-  width: 1rem; /* Ширина скроллбара */
+  width: 5px; /* Ширина скроллбара */
   background: url('/sb.png') no-repeat center; /* Фоновая картинка */
   background-size: cover;
 }
@@ -35,8 +35,7 @@ div {
 /* Ползунок (ползунок внутри скроллбара) */
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.5); /* Цвет ползунка */
-  border-radius: 0.6rem; /* Закругленные края */
-  border: 2px solid transparent; /* Пространство между ползунком и скроллбаром */
+  border-radius: 2px; /* Закругленные края */
   background-clip: padding-box; /* Сохраняет границы */
 }
 
@@ -48,7 +47,7 @@ div {
 /* Трек (внутренняя часть скроллбара) */
 ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.2); /* Цвет трека */
-  border-radius: 6px;
+  border-radius: 2px;
 }
 
 /* Трек при наведении */

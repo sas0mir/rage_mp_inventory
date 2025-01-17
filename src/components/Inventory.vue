@@ -45,7 +45,6 @@
           <div class="grid grid-two-fraction">
             <div
               class="slot slot-x3"
-              :class="{with_arrow: inventorySlots.weapons_first && inventorySlots.weapons_first.health > 70}"
               :id="'dropzone_weapons_first'"
             >
               <img
@@ -62,7 +61,6 @@
             </div>
             <div
               class="slot slot-x3"
-              :class="{with_arrow: inventorySlots.weapons_second && inventorySlots.weapons_second.health > 70}"
               :id="'dropzone_weapons_second'"
             >
               <img
@@ -81,7 +79,6 @@
           <div class="grid grid-one-fraction">
             <div
               class="slot slot-x3"
-              :class="{with_arrow: inventorySlots.weapons_special && inventorySlots.weapons_special.health > 70}"
               :id="'dropzone_weapons_special'"
             >
               <img
@@ -647,6 +644,15 @@ export default {
           const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
           if (!item) return;
 
+          //проверяем что предмет не один в слоте
+          if(
+            from === 'food' ||
+            from === 'medicine' ||
+            from === 'other'
+          ) {
+            //equippedItems.value[from][fromIndex] todo
+          }
+
           // Устанавливаем перетаскиваемый элемент
           draggedElement.value = item;
           draggedItem.value = { from, item: drItem };
@@ -680,8 +686,25 @@ export default {
               document.body.appendChild(item);
               item.style.left = event.pageX - shiftX + 'px';
               item.style.top = event.pageY - shiftY + 'px';
-              item.style.width = '80px';
-              item.style.height = '80px';
+              if (window.screen.width < 1280) {
+                item.style.width = '30px';
+                item.style.height = '30px';
+              } else if (window.screen.width < 1440) {
+                item.style.width = '33px';
+                item.style.height = '33px';
+              } else if (window.screen.width < 1680) {
+                item.style.width = '40px';
+                item.style.height = '40px';
+              } else if (window.screen.width < 1920) {
+                item.style.width = '47px';
+                item.style.height = '47px';
+              } else if (window.screen.width < 2560) {
+                item.style.width = '53px';
+                item.style.height = '53px';
+              } else {
+                item.style.width = '60px';
+                item.style.height = '60px';
+              }
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
@@ -695,7 +718,9 @@ export default {
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if(isSideZone) {
-                  target.style.border = isCompatible && isEnoughPlace ? "2px dashed orange" : "2px dashed red";
+                  target.style.border = isCompatible && isEnoughPlace ?
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
                 } else if (isDropzone && !isSideZone) {
                   target.style.borderColor = isCompatible && isEnoughPlace ? "orange" : "red";
                 }
@@ -921,8 +946,8 @@ export default {
 
 .inventory-box > h3 {
   /* height: 10%; */
-  padding: 0.5rem;
-  margin: 1rem;
+  margin: 0.5rem;
+  /* margin: 1rem; */
   border-radius: 1rem;
   background-color: rgb(65, 68, 66);
   background-image: url('/background_camouflage_headers.png');
@@ -941,37 +966,38 @@ export default {
 }
 
 .side-center > .inventory-container {
-  padding: 0;
-  margin: 0;
   gap: unset;
   justify-content: space-between;
+}
+.side-right > .inventory-container {
+  align-items: end;
 }
 .inventory-container {
   position: relative;
   display: flex;
-  /* flex-wrap: wrap; */
-  /* gap: 1rem; */
-  margin: 1rem;
-  /* margin: 1rem; */
-  /* min-height: 35vh; */
-  min-height: 90%;
+  padding: 1rem;
+  margin: 0;
+  height: 90%;
   overflow: auto;
   scrollbar-width: 10px;
   scrollbar-color: #c8c8c8;
+  box-sizing: border-box;
 }
+
 /* scrollbar */
 .inventory-container::-webkit-scrollbar {
-  width: 10px;
+  width: 5px;
+  height: 5px;
 	background-color: #c8c8c8;
-  border-radius: 10px;
+  border-radius: 2px;
 }
 .inventory-container::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-	border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
+	border-radius: 2px;
 	background-color: #a1a1a1;
 }
 .inventory-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
+  border-radius: 5px;
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
 	background-color: #2d2d2d;
 }
@@ -1038,31 +1064,18 @@ export default {
 .equipment {
   display: flex;
   flex-direction: column;
-  min-height: 15%;
-  /* min-height: 20%; */
-  /* flex-direction: column; */
-  /* gap: 1rem; */
-  /* min-width: 17%; */
-  /* padding: 1rem; */
-  /* background-image: url('/player_background.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: auto 100%; */
+  height: 18%;
 }
 .equipment h4 {
+  font-size: 1rem;
   text-align: center;
-}
-.equipment-overflow {
-  overflow: auto;
+  margin: 0;
 }
 .equipment-weapons {
-  height: 25%;
-}
-.equipment-overflow {
-  height: 60%;
+  height: 28%;
 }
 .equipment-accesories {
-  height: 15%;
+  padding-top: 1rem;
   background-image: url('/bgt.png');
   background-repeat: no-repeat;
   background-position: center;
@@ -1079,27 +1092,26 @@ export default {
 }
 
 .grid {
-  display: grid;
-  /* flex-grow: 2; */
-  grid-template-columns: repeat(7, 1fr);
-  gap: 1rem;
-  padding: 1rem;
+  display: flex;
+  justify-content: left;
+  padding: 0.5rem;
+  align-content: center;
 }
 .grid-two-fraction {
-  grid-template-columns: 50% 50%;
-  justify-content: center;
-  justify-items: center;
+  justify-content: space-around;
 }
 .grid-one-fraction {
-  grid-template-columns: 50%;
   justify-content: center;
-  justify-items: center;
+}
+.equipment-accesories > .grid {
+  justify-content: right;
 }
 
 .slot {
   position: relative;
   width: 60px;
   height: 60px;
+  margin: 0 1rem;
   background: rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
@@ -1118,12 +1130,6 @@ export default {
 .slot-x3 > img {
   width: auto;
   height: 60px;
-}
-.slot.with_arrow {
-  background-image: url('/arrow.png');
-  background-repeat: no-repeat;
-  background-position: right;
-  background-size: auto 100%;
 }
 .slot-bg-head {
   background-image: url('/inventory_slot_helm.png');
@@ -1196,11 +1202,17 @@ export default {
   -webkit-box-shadow: 9px 2px 12px 5px rgba(0,0,0,0.75); 
   box-shadow: 9px 2px 12px 5px rgba(0,0,0,0.75);
 }
+.side-left .tooltip, .side-right .tooltip {
+  width: 80%;
+}
+.side-center .tooltip.tooltip-left {
+  right: -60%;
+}
 .tooltip.tooltip-right {
-  left: -60%;
+  left: -80%;
 }
 .tooltip.tooltip-left {
-  right: -60%;
+  right: -80%;
 }
 .tooltip h4 {
   font-size: 1.3rem;
@@ -1241,6 +1253,7 @@ export default {
   transition: opacity 0.3s ease-in-out;
 }
 .logger p {
+  font-size: 1rem;
   font-family: monospace;
   color: rgb(12, 176, 12);
   border-bottom: 1px solid green;
@@ -1249,21 +1262,297 @@ export default {
 img.rotated {
   transform: rotate(90deg);
 }
-/* max-width: 3840px
+/* max-width: 3840px */
 
-max-width: 2560px
+@media(max-width: 2560px) {
+  .inventory {
+    height: 50%;
+  }
+  .inventory-box > h3 {
+    font-size: 1rem;
+  }
+  .inventory-container {
+    padding: 0.9rem;
+  }
+  .inventory-side-item > img {
+    height: 53px;
+  }
+  .inventory-side-item > p {
+    padding: 0 0.9rem;
+    font-size: 0.9rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.9rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.9rem;
+  }
+  .slot {
+    height: 53px;
+    width: 53px;
+    margin: 0 0.8rem;
+    border: 2px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 159px;
+  }
+  .slot-x3 > img {
+    height: 53px;
+  }
+  .equipment-accesories {
+    padding-top: 0.9rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.9rem;
+  }
+  .tooltip {
+    font-size: 0.9rem;
+    padding: 0.9rem;
+  }
+  .tooltip h4 {
+    font-size: 0.9rem;
+    padding: 0.9rem;
+  }
+  .logger-btn {
+    font-size: 0.9rem;
+  }
+  .logger p {
+    font-size: 0.9rem;
+  }
+} 
 
-max-width: 2048px
+@media(max-width: 1920px) {
+  .inventory {
+    height: 50%;
+  }
+  .inventory-box > h3 {
+    font-size: 0.9rem;
+  }
+  .inventory-container {
+    padding: 0.8rem;
+  }
+  .inventory-side-item > img {
+    height: 47px;
+  }
+  .inventory-side-item > p {
+    padding: 0 0.8rem;
+    font-size: 0.8rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.8rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.8rem;
+  }
+  .slot {
+    height: 47px;
+    width: 47px;
+    margin: 0 0.8rem;
+    border: 1px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 141px;
+  }
+  .slot-x3 > img {
+    height: 47px;
+  }
+  .equipment-accesories {
+    padding-top: 0.8rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.8rem;
+  }
+  .tooltip {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+  }
+  .tooltip h4 {
+    font-size: 0.8rem;
+    padding: 0.8rem;
+  }
+  .logger-btn {
+    font-size: 0.8rem;
+  }
+  .logger p {
+    font-size: 0.8rem;
+  }
+}
 
-max-width: 1920px
+@media(max-width: 1680px) {
+  .inventory {
+    height: 55%;
+  }
+  .inventory-box > h3 {
+    font-size: 0.8rem;
+  }
+  .inventory-container {
+    padding: 0.6rem;
+  }
+  .inventory-side-item > img {
+    height: 40px;
+  }
+  .inventory-side-item > p {
+    padding: 0 0.7rem;
+    font-size: 0.7rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.7rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.7rem;
+  }
+  .slot {
+    height: 40px;
+    width: 40px;
+    margin: 0 0.7rem;
+    border: 1px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 120px;
+  }
+  .slot-x3 > img {
+    height: 40px;
+  }
+  .equipment-accesories {
+    padding-top: 0.7rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.7rem;
+  }
+  .tooltip {
+    font-size: 0.7rem;
+    padding: 0.7rem;
+  }
+  .tooltip h4 {
+    font-size: 0.7rem;
+    padding: 0.7rem;
+  }
+  .logger-btn {
+    font-size: 0.7rem;
+  }
+  .logger p {
+    font-size: 0.7rem;
+  }
+}
 
-max-width: 1680px
+@media (max-width: 1440px) {
+  .inventory {
+    height: 55%;
+  }
+  .inventory-box > h3 {
+    font-size: 0.7rem;
+  }
+  .inventory-container {
+    padding: 0.5rem;
+  }
+  .inventory-side-item > img {
+    height: 33px;
+  }
+  .inventory-side-item > p {
+    padding: 0 0.5rem;
+    font-size: 0.6rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.6rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.6rem;
+  }
+  .slot {
+    height: 33px;
+    width: 33px;
+    margin: 0 0.6rem;
+    border: 1px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 99px;
+  }
+  .slot-x3 > img {
+    height: 33px;
+  }
+  .equipment-accesories {
+    padding-top: 0.6rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.6rem;
+  }
+  .tooltip {
+    font-size: 0.6rem;
+    padding: 0.6rem;
+  }
+  .tooltip h4 {
+    font-size: 0.6rem;
+    padding: 0.6rem;
+  }
+  .logger-btn {
+    font-size: 0.6rem;
+  }
+  .logger p {
+    font-size: 0.6rem;
+  }
+}
 
-max-width: 1600px
+@media (max-width: 1280px) {
+  .inventory {
+    height: 55%;
+  }
+  .inventory-box > h3 {
+    font-size: 0.6rem;
+  }
+  .inventory-container {
+    padding: 0.5rem;
+    margin: 0;
+  }
+  .inventory-side-item > img {
+  height: 30px;
+  }
 
-max-width: 1440px
-
-max-width: 1368px
-
-max-width: 1280px */
+  .inventory-side-item > p {
+    padding: 0 0.4rem;
+    font-size: 0.5rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.5rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.5rem;
+  }
+  .slot {
+    height: 30px;
+    width: 30px;
+    margin: 0 0.5rem;
+    border: 1px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 90px;
+  }
+  .slot-x3 > img {
+    height: 30px;
+  }
+  .equipment-accesories {
+    padding-top: 0.5rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.5rem;
+  }
+  .tooltip {
+    font-size: 0.5rem;
+    padding: 0.5rem;
+  }
+  .tooltip h4 {
+    font-size: 0.6rem;
+    padding: 0.5rem;
+  }
+  .logger-btn {
+    font-size: 0.5rem;
+  }
+  .logger p {
+    font-size: 0.5rem;
+  }
+}
 </style>
