@@ -152,7 +152,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             }
             if (inventoryItems.value.length) inventoryItems.value = []
         } else if (action === 'add') {
-            console.log('ADDD->', category, index, items[0].name);
             if (
                 category === 'food' ||
                 category === 'medicine' ||

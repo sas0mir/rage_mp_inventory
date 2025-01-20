@@ -21,6 +21,7 @@
           <img :src="group.item.icon" :alt="group.item.name"/>
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-left">{{ group.quantity }}</label>
+          <img :src="'./arrow.png'" :alt="''" class="left-arrow" @click="handleArrowClick('left', group.item, $event)">
         </div>
       </div>
       <!-- Tooltip -->
@@ -295,6 +296,7 @@
           @dblclick="handleDblClick('inventory', $event, group.item, idx)"
           @contextmenu="handleRightClick('inventory', $event, group.item)"
         >
+          <img :src="'./arrow.png'" :alt="''" class="right-arrow" v-on:click="handleArrowClick('right', group.item, $event)">
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
           <img :src="group.item.icon" :alt="group.item.name"/>
@@ -344,7 +346,7 @@ export default {
   components: {
     ContextMenu
   },
-  setup() {
+  setup(_, {emit}) {
     //тут подключить библиотеку mp
     const mp = null; 
     //стор для всех данных и работы с ними
@@ -383,6 +385,7 @@ export default {
     const contextMenuPosition = ref({ top: "0px", left: "0px" });
     const contextFromProp = ref<string>('');
     const contextItemProp = ref<InventoryItem>({} as InventoryItem);
+    const isForceUpdate = ref(false);
 
     const loadData = async () => {
       try {
@@ -390,6 +393,9 @@ export default {
         if (mp) {
           //setAround(mp.trigger(получение предметов окружения)); //левый список
           //setInventory(получение предметов инвентаря)); //правый список
+        } else if (inventoryItems.value.length || aroundItems.value.length) {
+          around.value = aroundItems.value;
+          inventory.value = inventoryItems.value;
         } else {
           //Подгружаем мок данные из стора если нет реальных
           setAround('init', mockAroundItems);
@@ -397,8 +403,11 @@ export default {
         }
         //если пришла расстановка предметов из игры или есть в сторе то ставим их
         const inGameSlots = null;//mp.trigger(getEquippedItems);
+        const isEquippedExist = equippedItems.value.other.find(el => el !== null)?.item;
         if (inGameSlots) {
           inventorySlots.value = inGameSlots;
+        } else if (isEquippedExist) {
+          inventorySlots.value = equippedItems.value;
         } else {
           //если расставленные слоты не пришли, то заполняем их в setEquippedStore
           setEquippedItems('init', inventory.value);
@@ -409,38 +418,54 @@ export default {
     }
 
     onMounted(() => {
+      isForceUpdate.value = false;
       loadData();
     });
 
     onUnmounted(() => {
       //Очищаем данные при уничтожении компонента
-      inventory.value = [];
-      around.value = [];
-      inventorySlots.value = {
-        weapons_first: null,
-        weapons_second: null,
-        weapons_special: null,
-        head: null,
-        vest: null,
-        clothesUp: null,
-        clothesDown: null,
-        shoes: null,
-        food: [],
-        medicine: [],
-        other: [],
-      };
-      setEquippedItems('clear', []);
-      setAround('clear', []);
-      setInventory('clear', []);
-      clearLogs();
+      if (isForceUpdate.value) {
+
+      } else {
+        inventory.value = [];
+        around.value = [];
+        inventorySlots.value = {
+          weapons_first: null,
+          weapons_second: null,
+          weapons_special: null,
+          head: null,
+          vest: null,
+          clothesUp: null,
+          clothesDown: null,
+          shoes: null,
+          food: [],
+          medicine: [],
+          other: [],
+        };
+        setEquippedItems('clear', []);
+        setAround('clear', []);
+        setInventory('clear', []);
+        clearLogs();
+      }
     });
 
     //отслеживаем изменения в сторе и перерисовываем инвентарь
     watch(
-      () => equippedItems,
+      () => equippedItems.value,
       (newSlots) => {
-        if (newSlots.value) {
-          inventorySlots.value = {...newSlots.value};
+        if (newSlots) {
+          console.log('WATCH-EQU->', newSlots);
+          inventorySlots.value = {...newSlots};
+        }
+      }, {deep: true}
+    );
+    watch(
+      () => inventorySlots.value,
+      (newSlots) => {
+        if (newSlots) {
+          console.log('WATCH-INVS->', newSlots);
+          //emit('reset');
+          //inventorySlots.value = {...newSlots};
         }
       }, {deep: true}
     );
@@ -453,10 +478,10 @@ export default {
       }, {deep: true}
     );
     watch(
-      () => inventoryItems,
+      () => inventoryItems.value,
       (newInventory) => {
-        if (newInventory.value) {
-          inventory.value = newInventory.value;
+        if (newInventory) {
+          inventory.value = newInventory;
         }
       }, {deep: true}
     );
@@ -746,6 +771,15 @@ export default {
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
                 //target.appendChild(item);
+                // let imgElement = null;
+                // if (item.tagName === 'DIV' && item.children.length) {
+                //   console.log('WORKS');
+                //   imgElement = item.querySelector('img') as HTMLElement;
+                //   while (item.firstChild) {
+                //     item.removeChild(item.firstChild);
+                //   }
+                // }
+                // console.log('ITEMMM->', item.children, imgElement)
                 item.remove();
                 
                 const dropzone = target.id;
@@ -761,6 +795,7 @@ export default {
                   setInventory('add', [drItem]);
                 } else if (dropzone === 'dropzone_weapons_first') {
                   setEquippedItems('add', [drItem], 'weapons_first');
+                  // inventorySlots.value.weapons_first = drItem;
                   //todo if (from === around) setInventory(add, item)++
                 } else if (dropzone === 'dropzone_weapons_second') {
                   setEquippedItems('add', [drItem], 'weapons_second');
@@ -804,6 +839,8 @@ export default {
               setLog(`Перемещение ${drItem?.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
               draggedItem.value = null;
               draggedElement.value = null;
+              isForceUpdate.value = true;
+              emit('reset');
           }
 
           document.addEventListener('mousemove', onMouseMove);
@@ -844,6 +881,11 @@ export default {
       };
     }
 
+    const handleArrowClick = (from: string, item: InventoryItem, event: MouseEvent) => {
+      event.stopPropagation();
+      console.log('ARROW-CLICK->', from, item);
+    }
+
     // Скрыть меню при клике в любом месте
     const hideContextMenu = () => {
       contextMenuVisible.value = false;
@@ -868,6 +910,7 @@ export default {
       handleMouseDown,
       handleDblClick,
       handleRightClick,
+      handleArrowClick,
       isVertical,
       checkOrientation,
       draggedItem,
@@ -1025,8 +1068,25 @@ export default {
 .inventory-side-item:hover {
   cursor: grab;
   transform: scale(1.1);
+  background-color: rgba(0, 0, 0, 0.713);
 }
-
+.left-arrow {
+  display: none;
+  transform:rotate(-90deg);
+  right: 0;
+}
+.right-arrow {
+  display: none;
+  transform: rotate(90deg);
+  left: 0;
+}
+.left-arrow:hover, .right-arrow:hover {
+  cursor: pointer;
+}
+.inventory-side-item:hover .left-arrow,
+.inventory-side-item:hover .right-arrow {
+  display: block;
+}
 .items-right {
   justify-content: right;
 }

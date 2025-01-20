@@ -1,14 +1,28 @@
 <template>
   <div id="content">
-    <Inventory />
+    <Inventory :key="inventoryKey" @reset="resetInventory" />
   </div>
 </template>
 
 <script lang="ts">
 import Inventory from './components/Inventory.vue';
+import { ref } from 'vue';
 export default {
   components: {
     Inventory
+  },
+  setup() {
+    const inventoryKey = ref(0);
+    const resetInventory = () => {
+      console.log('RESET!!!');
+      // Изменяем ключ для перерисовки компонента
+      inventoryKey.value++;
+    };
+
+    return {
+      inventoryKey,
+      resetInventory,
+    };
   }
 }
 </script>
