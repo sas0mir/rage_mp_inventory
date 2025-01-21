@@ -346,6 +346,7 @@ export default {
   components: {
     ContextMenu
   },
+  emits: ['reset'],
   setup(_, {emit}) {
     //тут подключить библиотеку mp
     const mp = null; 
@@ -386,6 +387,8 @@ export default {
     const contextFromProp = ref<string>('');
     const contextItemProp = ref<InventoryItem>({} as InventoryItem);
     const isForceUpdate = ref(false);
+    //для для остановки срабатывания драгндропа на нажатие стрелки
+    const isArrowClicked = ref(false);
 
     const loadData = async () => {
       try {
@@ -404,10 +407,10 @@ export default {
         //если пришла расстановка предметов из игры или есть в сторе то ставим их
         const inGameSlots = null;//mp.trigger(getEquippedItems);
         const isEquippedExist = equippedItems.value.other.find(el => el !== null)?.item;
-        if (inGameSlots) {
-          inventorySlots.value = inGameSlots;
-        } else if (isEquippedExist) {
+        if (isEquippedExist) {
           inventorySlots.value = equippedItems.value;
+        } else if (inGameSlots) {
+          inventorySlots.value = inGameSlots;
         } else {
           //если расставленные слоты не пришли, то заполняем их в setEquippedStore
           setEquippedItems('init', inventory.value);
@@ -454,26 +457,15 @@ export default {
       () => equippedItems.value,
       (newSlots) => {
         if (newSlots) {
-          console.log('WATCH-EQU->', newSlots);
           inventorySlots.value = {...newSlots};
         }
       }, {deep: true}
     );
     watch(
-      () => inventorySlots.value,
-      (newSlots) => {
-        if (newSlots) {
-          console.log('WATCH-INVS->', newSlots);
-          //emit('reset');
-          //inventorySlots.value = {...newSlots};
-        }
-      }, {deep: true}
-    );
-    watch(
-      () => aroundItems,
+      () => aroundItems.value,
       (newAround) => {
-        if (newAround.value) {
-          around.value = newAround.value;
+        if (newAround) {
+          around.value = newAround;
         }
       }, {deep: true}
     );
@@ -650,12 +642,15 @@ export default {
     const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
     const dragOffset = reactive({ x: 0, y: 0 });
     let clickTimeout: ReturnType<typeof setTimeout>;
+    let arrowTimeout: ReturnType<typeof setTimeout>;
 
     const handleMouseDown = (from: ValidFrom, event: MouseEvent, drItem: InventoryItem, fromIndex?: number) => {
       event.preventDefault();
       if (event.button === 2) return;
       clearTimeout(clickTimeout);
       clickTimeout = setTimeout(() => {
+        //останавливаем проваливание события клика на стрелку
+        if (isArrowClicked.value) return;
         if (event.button === 0 && drItem) {
           hideTooltip();
           const target = event.target as HTMLElement;
@@ -691,6 +686,7 @@ export default {
                   movedItemDeleted = true;
                 } else {
                   setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
+                  setInventory('delete', [drItem]);
                   movedItemDeleted = true;
                 }
               }
@@ -699,6 +695,8 @@ export default {
                 (from === 'food' ||
                 from === 'medicine' ||
                 from === 'other') &&
+                fromIndex &&
+                equippedItems.value[from][fromIndex] &&
                 equippedItems.value[from][fromIndex!] !== undefined
               ) {
                 if (equippedItems.value[from][fromIndex!]!.quantity > 1 && !isItemCloned) {
@@ -735,19 +733,19 @@ export default {
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
-                //console.log('TARGET->', target.id);
                 if (/^movable/ig.test(target.id)) {
-                  console.log('NO-POINTER');
                   target.style.pointerEvents = 'none';
                 }
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
                 const isDropzone = /^dropzone/i.test(target.id);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
-                if(isSideZone) {
+                if(target.id === 'dropzone_right') {
                   target.style.border = isCompatible && isEnoughPlace ?
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+                } else if (target.id === 'dropzone_left') {
+                  target.style.border = `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange`;
                 } else if (isDropzone && !isSideZone) {
                   target.style.borderColor = isCompatible && isEnoughPlace ? "orange" : "red";
                 }
@@ -770,16 +768,6 @@ export default {
               if (target && /^dropzone/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
-                //target.appendChild(item);
-                // let imgElement = null;
-                // if (item.tagName === 'DIV' && item.children.length) {
-                //   console.log('WORKS');
-                //   imgElement = item.querySelector('img') as HTMLElement;
-                //   while (item.firstChild) {
-                //     item.removeChild(item.firstChild);
-                //   }
-                // }
-                // console.log('ITEMMM->', item.children, imgElement)
                 item.remove();
                 
                 const dropzone = target.id;
@@ -788,6 +776,9 @@ export default {
                   setAround('add', [drItem]);
                   setLog(`Перемещение ${drItem?.name} не удалось, рюкзак полон. ${new Date().getHours() + ':' + new Date().getMinutes()}`)
                 }
+                if (from === 'around' && dropzone !== 'dropzone_left' && isEnoughPlace) {
+                  setInventory('add', [drItem]);
+                }
                 //кладем предмет в слот или боковые контейнеры
                 if (dropzone === 'dropzone_left') {
                   setAround('add', [drItem]);
@@ -795,8 +786,6 @@ export default {
                   setInventory('add', [drItem]);
                 } else if (dropzone === 'dropzone_weapons_first') {
                   setEquippedItems('add', [drItem], 'weapons_first');
-                  // inventorySlots.value.weapons_first = drItem;
-                  //todo if (from === around) setInventory(add, item)++
                 } else if (dropzone === 'dropzone_weapons_second') {
                   setEquippedItems('add', [drItem], 'weapons_second');
                 } else if (dropzone === 'dropzone_weapons_special') {
@@ -821,10 +810,6 @@ export default {
                   const putIndex = parseInt(dropzone.replace('dropzone_other_', ''));
                   setEquippedItems('add', [drItem], 'other', putIndex);
                 }
-                //если положили в экипировку, также кладем в инвентарь
-                // if (from === 'around' && dropzone !== 'dropzone_right') {
-                //   setInventory('add', [drItem])
-                // }
               } else {
                 //возвращаем предмет на место если опустили вне слота
                 item.remove();
@@ -883,7 +868,17 @@ export default {
 
     const handleArrowClick = (from: string, item: InventoryItem, event: MouseEvent) => {
       event.stopPropagation();
-      console.log('ARROW-CLICK->', from, item);
+      isArrowClicked.value = true;
+      if (!item || (from === 'right' && isItemEquipped(item))) return;
+      setEquippedItems('add', [item], item.category as EquippedItemsKeys);
+      if (from === 'left') {
+        setAround('delete', [item]);
+        setInventory('add', [item]);
+      }
+      clearTimeout(arrowTimeout);
+      arrowTimeout = setTimeout(() => {
+        isArrowClicked.value = false;
+      }, 300)
     }
 
     // Скрыть меню при клике в любом месте
@@ -1067,17 +1062,20 @@ export default {
 }
 .inventory-side-item:hover {
   cursor: grab;
-  transform: scale(1.1);
+  /* transform: scale(1.1); */
   background-color: rgba(0, 0, 0, 0.713);
+  width: 100%;
 }
 .left-arrow {
   display: none;
   transform:rotate(-90deg);
+  position: absolute;
   right: 0;
 }
 .right-arrow {
   display: none;
   transform: rotate(90deg);
+  position: absolute;
   left: 0;
 }
 .left-arrow:hover, .right-arrow:hover {

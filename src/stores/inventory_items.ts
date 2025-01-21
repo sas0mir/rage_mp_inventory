@@ -48,6 +48,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         other: [null, null, null, null, null, null],
     });
 
+    //init, clear, add, delete для каждой зоны (Окружение/Экипировка/Инвентарь)
     function setAround(action: string, items: InventoryItem[], _idx?: number) {
         console.log(_idx);
         if (action === 'init' && items) {
@@ -75,7 +76,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         }
     }
     function setEquippedItems(action: string, items: InventoryItem[], category?: EquippedItemsKeys, index?: number) {
-        //init, clear, add, delete
         if (action === 'init') {
             const inventory = items.length ? items : inventoryItems.value;
             if (inventory) {
@@ -128,14 +128,14 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 {
                     equippedItems.value[category].splice(delIndex, 1, {item: items[0], quantity: equippedItems.value[category][delIndex].quantity - 1});
                 } else {
-                    equippedItems.value[category].splice(delIndex, 1);
+                    equippedItems.value[category].splice(delIndex, 1, null);
                 }
             } else {
                 equippedItems.value[category] = null;
             }
             //затем из инвентаря
-            const delIndex = inventoryItems.value.findIndex(el => el && el.name === items[0]?.name);
-            if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
+            // const delIndex = inventoryItems.value.findIndex(el => el && el.name === items[0]?.name);
+            // if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
             equippedItems.value = {
                 weapons_first: null,
@@ -179,7 +179,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             ) {
                 equippedItems.value[category] = items[0]
             }
-            inventoryItems.value.push(items[0]);
         }
     }
 
