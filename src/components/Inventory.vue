@@ -850,7 +850,7 @@ export default {
         } else {
           setEquippedItems('delete', [item], from);
         }
-        setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`)
+        setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
     }
 
@@ -869,12 +869,17 @@ export default {
     const handleArrowClick = (from: string, item: InventoryItem, event: MouseEvent) => {
       event.stopPropagation();
       isArrowClicked.value = true;
-      if (!item || (from === 'right' && isItemEquipped(item))) return;
-      setEquippedItems('add', [item], item.category as EquippedItemsKeys);
-      if (from === 'left') {
+      const itemStackSize = calcSlots(item.size, item.stackable, item.slotable);
+      const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
+      const equipped = isItemEquipped(item);
+      if (!item || (from === 'right' && equipped)) return;
+      if (from === 'right') setEquippedItems('add', [item], item.category as EquippedItemsKeys);
+      if (from === 'left' && isEnoughPlace) {
         setAround('delete', [item]);
         setInventory('add', [item]);
+        if (!isItemEquipped(item)) setEquippedItems('add', [item], item.category as EquippedItemsKeys);
       }
+      setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       clearTimeout(arrowTimeout);
       arrowTimeout = setTimeout(() => {
         isArrowClicked.value = false;
