@@ -165,6 +165,7 @@
               />
             </div>
             <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
+              если понядобится сделать рюкзак как слот экипировки
               <img
                 v-if="inventorySlots.backpack"
                 :src="inventorySlots.backpack.icon"
@@ -172,7 +173,7 @@
                 @mouseover="showCenterTooltip(inventorySlots.backpack)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleMouseDown('shoes', $event, inventorySlots.backpack)"
-                :id="'movable_shoes' + inventorySlots.backpack.id"
+                :id="'movable_backpack' + inventorySlots.backpack.id"
               />
             </div> -->
           </div>
@@ -194,7 +195,7 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleMouseDown('food', $event, item.item, idx)"
-                  :id="'movable_food' + idx"
+                  :id="'movable_food_' + idx"
                   @dblclick="handleDblClick('food', $event, item.item, idx)"
                   @contextmenu="handleRightClick('food', $event, item.item)"
                 />
@@ -224,7 +225,7 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleMouseDown('medicine', $event, item.item, idx)"
-                  :id="'movable_medicine' + idx"
+                  :id="'movable_medicine_' + idx"
                   @dblclick="handleDblClick('medicine', $event, item.item, idx)"
                   @contextmenu="handleRightClick('medicine', $event, item.item)"
                 />
@@ -254,7 +255,7 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleMouseDown('other', $event, item.item, idx)"
-                  :id="'movable_other' + idx"
+                  :id="'movable_other_' + idx"
                   @dblclick="handleDblClick('other', $event, item.item, idx)"
                   @contextmenu="handleRightClick('other', $event, item.item)"
                 />
@@ -655,6 +656,7 @@ export default {
           hideTooltip();
           const target = event.target as HTMLElement;
           let item = target.closest("[id*='movable']") as HTMLElement;
+          console.log('ITEM->', item, target.id);
           const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
           const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
           if (!item) return;
@@ -669,8 +671,8 @@ export default {
           const rect = item.getBoundingClientRect();
           dragOffset.x = event.clientX - rect.left;
           dragOffset.y = event.clientY - rect.top;
-          const shiftX = event.clientX - rect.left;
-          const shiftY = event.clientY - rect.top;
+          //const shiftX = event.clientX - rect.left;
+          //const shiftY = event.clientY - rect.top;
 
           function onMouseMove(event: MouseEvent) {
               // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
@@ -709,35 +711,36 @@ export default {
               item.style.zIndex = "1000";
               item.style.pointerEvents = "none";
               document.body.appendChild(item);
-              item.style.left = event.pageX - shiftX + 'px';
-              item.style.top = event.pageY - shiftY + 'px';
+              item.style.left = event.pageX + 'px';
+              item.style.top = event.pageY + 'px';
+              if (/^movable_right/i.test(item.id)) {
+                item.style.flexDirection = 'row-reverse';
+              }
               if (window.screen.width < 1280) {
-                item.style.width = '30px';
                 item.style.height = '30px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '90px' : '30px'; 
               } else if (window.screen.width < 1440) {
-                item.style.width = '33px';
                 item.style.height = '33px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '99px' : '33px'; 
               } else if (window.screen.width < 1680) {
-                item.style.width = '40px';
                 item.style.height = '40px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '120px' : '40px'; 
               } else if (window.screen.width < 1920) {
-                item.style.width = '47px';
                 item.style.height = '47px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '141px' : '47px'; 
               } else if (window.screen.width < 2560) {
-                item.style.width = '53px';
                 item.style.height = '53px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '159px' : '53px';
               } else {
-                item.style.width = '60px';
                 item.style.height = '60px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '180px' : '60px';
               }
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
               if (target) {
-                if (/^movable/ig.test(target.id)) {
-                  target.style.pointerEvents = 'none';
-                }
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
                 const isDropzone = /^dropzone/i.test(target.id);
+                const isImageInSlot = /^movable/i.test(target.id);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if(target.id === 'dropzone_right') {
@@ -748,15 +751,16 @@ export default {
                   target.style.border = `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange`;
                 } else if (isDropzone && !isSideZone) {
                   target.style.borderColor = isCompatible && isEnoughPlace ? "orange" : "red";
+                } else if (isImageInSlot) {
+                  target.style.border = (isCompatible && isEnoughPlace) || /^movable_left/i.test(target.id) ?
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
                 }
                 target.onmouseout = () => {
-                  if(isSideZone) {
+                  if(isSideZone || isImageInSlot) {
                     target.style.border = "none";
                   } else if (isDropzone && !isSideZone) {
                     target.style.borderColor = "gray";
-                  }
-                  if (/^movable/ig.test(target.id)) {
-                    target.style.pointerEvents = 'auto'
                   }
                 }
               }
@@ -765,12 +769,18 @@ export default {
               document.removeEventListener('mousemove', onMouseMove);
               document.removeEventListener('mouseup', onMouseUp);
               const target = event.target as HTMLElement;
-              if (target && /^dropzone/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
+              if (target && /^dropzone|^movable/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
                 item.remove();
                 
-                const dropzone = target.id;
+                let dropzone = target.id;
+                //если перетаскиваем над слотом с картинкой ставим дропзону ее слота
+                if (/^movable/i.test(target.id)) {
+                  if (/^movable_left|^movable_right/i.test(target.id)) {
+                    dropzone = target.id.replace('movable', 'dropzone').replace(/\d+$/, '');
+                  } else dropzone = target.id.replace('movable', 'dropzone');
+                }
                 //отменяем перенос если места в рюкзаке нет
                 if (from === 'around' && dropzone !== 'dropzone_left' && !isEnoughPlace) {
                   setAround('add', [drItem]);

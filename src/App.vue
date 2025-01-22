@@ -14,7 +14,6 @@ export default {
   setup() {
     const inventoryKey = ref(0);
     const resetInventory = () => {
-      console.log('RESET!!!');
       // Изменяем ключ для перерисовки компонента
       inventoryKey.value++;
     };
