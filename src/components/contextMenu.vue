@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, type PropType } from "vue";
-import { useInventoryItemsStore, type InventoryItem } from "../stores/inventory_items";
+import { useInventoryItemsStore, type InventoryItem, type EquippedItemsKeys } from "../stores/inventory_items";
 
 export default defineComponent({
     name: "ContextMenu",
@@ -26,7 +26,7 @@ export default defineComponent({
     setup(props) {
 
         const inventoryItemsStore = useInventoryItemsStore();
-        const { setAround } = inventoryItemsStore;
+        const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
 
         // Вычисляемый стиль для позиции меню
         const menuStyles = computed(() => ({
@@ -40,9 +40,28 @@ export default defineComponent({
         };
 
         const dropItem = () => {
-            if (props.from === 'around' || !props.item) return
-            setAround('add', [props.item])
-            //for delete search for lowest quantity item index and delete
+            if (!props.item) return
+            if (props.from === 'around') {
+                setAround('delete', [props.item]);
+            }
+            if (props.from === 'inventory') {
+                setInventory('delete', [props.item]);
+            }
+            if (
+                (props.from === 'weapons_first' ||
+                props.from === 'weapons_second' ||
+                props.from === 'weapons_special' ||
+                props.from === 'head' ||
+                props.from === 'vest' ||
+                props.from === 'clothesUp' ||
+                props.from === 'clothesDown' ||
+                props.from === 'shoes' ||
+                props.from === 'food' ||
+                props.from === 'medicine' ||
+                props.from === 'other') && props.item.category
+            ) {
+                setEquippedItems('delete', [props.item], props.item.category as EquippedItemsKeys);
+            }
         };
 
         return {

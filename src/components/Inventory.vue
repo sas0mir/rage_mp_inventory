@@ -2,7 +2,7 @@
   <div class="inventory">
     <!-- Список стэша -->
     <section class="inventory-box side-left">
-      <h3>Окружение</h3>
+      <h3>Окружение ({{ aroundSize + ' / ' + aroundCapacity }})</h3>
       <div
         class="inventory-container container-column"
         :id="'dropzone_left'"
@@ -390,6 +390,8 @@ export default {
     const isForceUpdate = ref(false);
     //для для остановки срабатывания драгндропа на нажатие стрелки
     const isArrowClicked = ref(false);
+    //вместимость окружения (машина, сундук...)
+    const aroundCapacity = ref(0);
 
     const loadData = async () => {
       try {
@@ -397,13 +399,18 @@ export default {
         if (mp) {
           //setAround(mp.trigger(получение предметов окружения)); //левый список
           //setInventory(получение предметов инвентаря)); //правый список
+          //aroundCapacity.value = mp.trigger(получение вместимости окружения);
         } else if (inventoryItems.value.length || aroundItems.value.length) {
           around.value = aroundItems.value;
           inventory.value = inventoryItems.value;
+          //хардкод вместимости окружения
+          aroundCapacity.value = 100;
         } else {
           //Подгружаем мок данные из стора если нет реальных
           setAround('init', mockAroundItems);
           setInventory('init', mockInventoryItems);
+          //хардкод вместимости окружения
+          aroundCapacity.value = 100;
         }
         //если пришла расстановка предметов из игры или есть в сторе то ставим их
         const inGameSlots = null;//mp.trigger(getEquippedItems);
@@ -545,7 +552,18 @@ export default {
         }
         return counter
       } else return 0
-    })
+    });
+
+    //размер всего стака в окружении
+    const aroundSize = computed(() => {
+      if (around.value.length) {
+        let counter = 0;
+        for (let i = 0; i < around.value.length; i++) {
+          counter += calcSlots(around.value[i].size, around.value[i].stackable, around.value[i].slotable)
+        }
+        return counter
+      } else return 0
+    });
 
     // Группировка предметов
     const groupedAround = computed(() => {
@@ -880,16 +898,26 @@ export default {
       event.stopPropagation();
       isArrowClicked.value = true;
       const itemStackSize = calcSlots(item.size, item.stackable, item.slotable);
-      const isEnoughPlace = itemStackSize + inventorySize.value <= backpackSize.value;
-      const equipped = isItemEquipped(item);
-      if (!item || (from === 'right' && equipped)) return;
-      if (from === 'right') setEquippedItems('add', [item], item.category as EquippedItemsKeys);
-      if (from === 'left' && isEnoughPlace) {
+      const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= backpackSize.value;
+      const isEnoughAroundPlace = itemStackSize + aroundSize.value <= aroundCapacity.value;
+      // const equipped = isItemEquipped(item);
+      if (!item) return;
+      //перетаскиваем если слева - то в инвентарь,ь, если справа - то в окружение
+      //в зависимости от того хватит ли места по стакам в противоположном списке
+      if (from === 'right' && isEnoughAroundPlace) {
+        setAround('add', [item]);
+        if (isItemEquipped(item)) setEquippedItems('delete', [item], item.category as EquippedItemsKeys);
+        setInventory('delete', [item]);
+        setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+      if (from === 'left' && isEnoughInventoryPlace) {
         setAround('delete', [item]);
         setInventory('add', [item]);
-        if (!isItemEquipped(item)) setEquippedItems('add', [item], item.category as EquippedItemsKeys);
+        setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
-      setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      if (from === 'left' && !isEnoughInventoryPlace || from === 'right' && !isEnoughAroundPlace) {
+        setLog(`Быстрое перемещение ${item?.name} невозможно инвентарь полон ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
       clearTimeout(arrowTimeout);
       arrowTimeout = setTimeout(() => {
         isArrowClicked.value = false;
@@ -937,7 +965,9 @@ export default {
       contextMenuVisible,
       contextMenuPosition,
       contextFromProp,
-      contextItemProp
+      contextItemProp,
+      aroundSize,
+      aroundCapacity
     };
   },
 };
@@ -970,7 +1000,7 @@ export default {
 
 .side-center {
   /* flex-grow: 2; */
-  width: 50%;
+  width: 46%;
   height: 100%;
   background-image: url('/bgi.png');
   background-repeat: no-repeat;
@@ -984,7 +1014,7 @@ export default {
 
 .side-left, .side-right {
   /* flex-grow: 1; */
-  width: 25%;
+  width: 27%;
 }
 .inventory-box.side-left {
   background-image: url('/bgl.png');
@@ -1024,15 +1054,19 @@ export default {
   gap: unset;
   justify-content: space-between;
 }
+.side-left > .inventory-container {
+  padding-right: 0px;
+}
 .side-right > .inventory-container {
   align-items: end;
+  padding-left: 0px;
 }
 .inventory-container {
   position: relative;
   display: flex;
   padding: 1rem;
   margin: 0;
-  height: 90%;
+  height: 95%;
   overflow: auto;
   scrollbar-width: 10px;
   scrollbar-color: #c8c8c8;
@@ -1068,10 +1102,12 @@ export default {
   display: flex;
   justify-content: left;
   align-items: center;
-  width: 90%;
-  height: fit-content;
+  width: 100%;
+  height: 60px;
+  /* height: fit-content; */
   margin-bottom: 0.5rem;
   transition: transform .2s;
+  box-sizing: border-box;
   /* padding: 0.6rem; */
   /* background-color: rgba(78, 75, 71, 0.911); */
 }
@@ -1079,19 +1115,20 @@ export default {
   cursor: grab;
   /* transform: scale(1.1); */
   background-color: rgba(0, 0, 0, 0.713);
-  width: 100%;
+  border-radius: 5px;
+  /* width: 100%; */
 }
 .left-arrow {
   display: none;
   transform:rotate(-90deg);
   position: absolute;
-  right: 0;
+  right: 1rem;
 }
 .right-arrow {
   display: none;
   transform: rotate(90deg);
   position: absolute;
-  left: 0;
+  left: 1rem;
 }
 .left-arrow:hover, .right-arrow:hover {
   cursor: pointer;
@@ -1105,8 +1142,8 @@ export default {
 }
 
 .inventory-side-item > img {
-  width: auto;
-  height: 60px;
+  max-width: 120px;
+  max-height: 60px;
   cursor: grab;
   background-color: black;
 }
@@ -1139,15 +1176,15 @@ export default {
 .equipment {
   display: flex;
   flex-direction: column;
-  height: 18%;
+  height: 17%;
 }
 .equipment h4 {
-  font-size: 1rem;
+  font-size: 0.9rem;
   text-align: center;
   margin: 0;
 }
 .equipment-weapons {
-  height: 28%;
+  height: 32%;
 }
 .equipment-accesories {
   padding-top: 1rem;
@@ -1175,6 +1212,11 @@ export default {
 .grid-two-fraction {
   justify-content: space-around;
 }
+@media (min-aspect-ratio: 16/9) {
+  .grid-two-fraction {
+    padding: 0px !important;
+  }
+}
 .grid-one-fraction {
   justify-content: center;
 }
@@ -1184,14 +1226,15 @@ export default {
 
 .slot {
   position: relative;
-  width: 60px;
-  height: 60px;
-  margin: 0 1rem;
-  background: rgba(0, 0, 0, 0.1);
+  width: 62px;
+  height: 62px;
+  margin: 0 0.7rem;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   border: 2px dashed gray;
+  box-sizing: border-box;
 }
 .slot > img {
   cursor: grab;
@@ -1201,6 +1244,7 @@ export default {
 }
 .slot.slot-x3 {
   width: 180px;
+  height: 60px;
 }
 .slot-x3 > img {
   width: auto;
@@ -1344,13 +1388,23 @@ img.rotated {
     height: 55%;
   }
   .inventory-box > h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
   .inventory-container {
     padding: 0.9rem;
   }
+  .left-arrow {
+    right: 0.9rem;
+  }
+  .right-arrow {
+    left: 0.9rem;
+  }
+  .inventory-side-item {
+    height: 57px;
+  }
   .inventory-side-item > img {
-    height: 53px;
+    max-width: 114px;
+    max-height: 57px;
   }
   .inventory-side-item > p {
     padding: 0 0.9rem;
@@ -1361,19 +1415,23 @@ img.rotated {
     font-size: 0.9rem;
   }
   .inventory-box h4 {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+  }
+  .grid {
+    padding: 0.5rem;
   }
   .slot {
-    height: 53px;
-    width: 53px;
-    margin: 0 0.8rem;
+    height: 60px;
+    width: 60px;
+    margin: 0 0.5rem;
     border: 2px dashed gray;
   }
   .slot.slot-x3 {
-    width: 159px;
+    width: 174px;
+    height: 58px;
   }
   .slot-x3 > img {
-    height: 53px;
+    height: 58px;
   }
   .equipment-accesories {
     padding-top: 0.9rem;
@@ -1395,20 +1453,30 @@ img.rotated {
   .logger p {
     font-size: 0.9rem;
   }
-} 
+}
 
-@media(max-width: 1920px) {
+@media(max-width: 2240px) {
   .inventory {
     height: 55%;
   }
   .inventory-box > h3 {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   .inventory-container {
     padding: 0.8rem;
   }
+  .left-arrow {
+    right: 0.8rem;
+  }
+  .right-arrow {
+    left: 0.8rem;
+  }
+  .inventory-side-item {
+    height: 53px;
+  }
   .inventory-side-item > img {
-    height: 47px;
+    max-width: 106px;
+    max-height: 53px;
   }
   .inventory-side-item > p {
     padding: 0 0.8rem;
@@ -1419,19 +1487,23 @@ img.rotated {
     font-size: 0.8rem;
   }
   .inventory-box h4 {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+  }
+  .grid {
+    padding: 0.5;
   }
   .slot {
-    height: 47px;
-    width: 47px;
-    margin: 0 0.8rem;
-    border: 1px dashed gray;
+    height: 56px;
+    width: 56px;
+    margin: 0 0.5rem;
+    border: 2px dashed gray;
   }
   .slot.slot-x3 {
-    width: 141px;
+    width: 156px;
+    height: 52px;
   }
   .slot-x3 > img {
-    height: 47px;
+    height: 52px;
   }
   .equipment-accesories {
     padding-top: 0.8rem;
@@ -1455,7 +1527,7 @@ img.rotated {
   }
 }
 
-@media(max-width: 1680px) {
+@media(max-width: 1920px) {
   .inventory {
     height: 55%;
   }
@@ -1463,10 +1535,20 @@ img.rotated {
     font-size: 0.8rem;
   }
   .inventory-container {
-    padding: 0.6rem;
+    padding: 0.7rem;
+  }
+  .left-arrow {
+    right: 0.7rem;
+  }
+  .right-arrow {
+    left: 0.7rem;
+  }
+  .inventory-side-item {
+    height: 50px;
   }
   .inventory-side-item > img {
-    height: 40px;
+    max-width: 100px;
+    max-height: 50px;
   }
   .inventory-side-item > p {
     padding: 0 0.7rem;
@@ -1477,19 +1559,23 @@ img.rotated {
     font-size: 0.7rem;
   }
   .inventory-box h4 {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
+  }
+  .grid {
+    padding: 0.4rem;
   }
   .slot {
-    height: 40px;
-    width: 40px;
-    margin: 0 0.7rem;
+    height: 52px;
+    width: 52px;
+    margin: 0 0.4rem;
     border: 1px dashed gray;
   }
   .slot.slot-x3 {
-    width: 120px;
+    width: 141px;
+    height: 47px;
   }
   .slot-x3 > img {
-    height: 40px;
+    height: 47px;
   }
   .equipment-accesories {
     padding-top: 0.7rem;
@@ -1513,7 +1599,7 @@ img.rotated {
   }
 }
 
-@media (max-width: 1440px) {
+@media(max-width: 1680px) {
   .inventory {
     height: 55%;
   }
@@ -1521,13 +1607,23 @@ img.rotated {
     font-size: 0.7rem;
   }
   .inventory-container {
-    padding: 0.5rem;
+    padding: 0.6rem;
+  }
+  .left-arrow {
+    right: 0.6rem;
+  }
+  .right-arrow {
+    left: 0.6rem;
+  }
+  .inventory-side-item {
+    height: 42px;
   }
   .inventory-side-item > img {
-    height: 33px;
+    max-width: 84px;
+    max-height: 42px;
   }
   .inventory-side-item > p {
-    padding: 0 0.5rem;
+    padding: 0 0.6rem;
     font-size: 0.6rem;
   }
   .inventory-side-label-left,
@@ -1535,19 +1631,23 @@ img.rotated {
     font-size: 0.6rem;
   }
   .inventory-box h4 {
-    font-size: 0.6rem;
+    font-size: 0.5rem;
+  }
+  .grid {
+    padding: 0.3rem;
   }
   .slot {
-    height: 33px;
-    width: 33px;
-    margin: 0 0.6rem;
+    height: 47px;
+    width: 47px;
+    margin: 0 0.3rem;
     border: 1px dashed gray;
   }
   .slot.slot-x3 {
-    width: 99px;
+    width: 129px;
+    height: 43px;
   }
   .slot-x3 > img {
-    height: 33px;
+    height: 43px;
   }
   .equipment-accesories {
     padding-top: 0.6rem;
@@ -1571,7 +1671,7 @@ img.rotated {
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1440px) {
   .inventory {
     height: 55%;
   }
@@ -1580,14 +1680,22 @@ img.rotated {
   }
   .inventory-container {
     padding: 0.5rem;
-    margin: 0;
+  }
+  .left-arrow {
+    right: 0.5rem;
+  }
+  .right-arrow {
+    left: 0.5rem;
+  }
+  .inventory-side-item {
+    height: 35px;
   }
   .inventory-side-item > img {
-  height: 30px;
+    max-width: 70px;
+    max-height: 35px;
   }
-
   .inventory-side-item > p {
-    padding: 0 0.4rem;
+    padding: 0 0.5rem;
     font-size: 0.5rem;
   }
   .inventory-side-label-left,
@@ -1595,19 +1703,23 @@ img.rotated {
     font-size: 0.5rem;
   }
   .inventory-box h4 {
-    font-size: 0.5rem;
+    font-size: 0.4rem;
+  }
+  .grid {
+    padding: 0.3rem;
   }
   .slot {
-    height: 30px;
-    width: 30px;
-    margin: 0 0.5rem;
+    height: 37px;
+    width: 37px;
+    margin: 0 0.3rem;
     border: 1px dashed gray;
   }
   .slot.slot-x3 {
-    width: 90px;
+    width: 96px;
+    height: 32px;
   }
   .slot-x3 > img {
-    height: 30px;
+    height: 32px;
   }
   .equipment-accesories {
     padding-top: 0.5rem;
@@ -1620,7 +1732,7 @@ img.rotated {
     padding: 0.5rem;
   }
   .tooltip h4 {
-    font-size: 0.6rem;
+    font-size: 0.5rem;
     padding: 0.5rem;
   }
   .logger-btn {
@@ -1628,6 +1740,80 @@ img.rotated {
   }
   .logger p {
     font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .inventory {
+    height: 55%;
+  }
+  .inventory-box > h3 {
+    font-size: 0.5rem;
+  }
+  .inventory-container {
+    padding: 0.4rem;
+    margin: 0;
+  }
+  .left-arrow {
+    right: 0.4rem;
+  }
+  .right-arrow {
+    left: 0.4rem;
+  }
+  .inventory-side-item {
+    height: 30px;
+  }
+  .inventory-side-item > img {
+    max-width: 60px;
+    max-height: 30px;
+  }
+
+  .inventory-side-item > p {
+    padding: 0 0.4rem;
+    font-size: 0.4rem;
+  }
+  .inventory-side-label-left,
+  .inventory-side-label-right {
+    font-size: 0.4rem;
+  }
+  .inventory-box h4 {
+    font-size: 0.3rem;
+  }
+  .grid {
+    padding: 0.2rem;
+  }
+  .slot {
+    height: 30px;
+    width: 30px;
+    margin: 0 0.2rem;
+    border: 1px dashed gray;
+  }
+  .slot.slot-x3 {
+    width: 78px;
+    height: 26px;
+  }
+  .slot-x3 > img {
+    height: 26px;
+  }
+  .equipment-accesories {
+    padding-top: 0.4rem;
+  }
+  .equipment-quantity-label {
+    font-size: 0.4rem;
+  }
+  .tooltip {
+    font-size: 0.4rem;
+    padding: 0.4rem;
+  }
+  .tooltip h4 {
+    font-size: 0.5rem;
+    padding: 0.4rem;
+  }
+  .logger-btn {
+    font-size: 0.4rem;
+  }
+  .logger p {
+    font-size: 0.4rem;
   }
 }
 </style>
