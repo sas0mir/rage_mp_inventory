@@ -679,8 +679,9 @@ export default {
           const target = eventD.target as HTMLElement;
           let item = target.closest("[id*='movable']") as HTMLElement;
           const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
-          const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= backpackSize.value;
-          const isEnoughAroundPlace = itemStackSize + aroundSize.value <= aroundCapacity.value;
+          const isEnoughInventoryPlace = from === 'around' ?
+            itemStackSize + inventorySize.value <= backpackSize.value : true;
+          const isEnoughAroundPlace = from !== 'around' ? itemStackSize + aroundSize.value <= aroundCapacity.value : true;
           if (!item) return;
 
           // Устанавливаем перетаскиваемый элемент
@@ -733,24 +734,25 @@ export default {
               item.style.zIndex = "1000";
               item.style.pointerEvents = "none";
               document.body.appendChild(item);
-              item.style.left = event.pageX + 'px';
-              item.style.top = event.pageY + 'px';
+              item.style.left = `${event.pageX - 15}px`;
+              item.style.top = `${event.pageY - 15}px`;
               if (/^movable_right/i.test(item.id)) {
                 item.style.flexDirection = 'row-reverse';
+                item.style.justifyContent = 'flex-end';
               }
-              if (window.screen.width < 1280) {
+              if (window.innerWidth < 1280) {
                 item.style.height = '30px';
                 item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '90px' : '30px'; 
-              } else if (window.screen.width < 1440) {
+              } else if (window.innerWidth < 1440) {
                 item.style.height = '33px';
                 item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '99px' : '33px'; 
-              } else if (window.screen.width < 1680) {
+              } else if (window.innerWidth < 1680) {
                 item.style.height = '40px';
                 item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '120px' : '40px'; 
-              } else if (window.screen.width < 1920) {
+              } else if (window.innerWidth < 1920) {
                 item.style.height = '47px';
                 item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '141px' : '47px'; 
-              } else if (window.screen.width < 2560) {
+              } else if (window.innerWidth < 2560) {
                 item.style.height = '53px';
                 item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '159px' : '53px';
               } else {
@@ -765,6 +767,15 @@ export default {
                 const isImageInSlot = /^movable/i.test(target.id);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
+                if (target.tagName === 'BODY') {
+                  //наводим предмет вне окна инвентаря и подсвечиваем окружение
+                  const leftZone = document.getElementById('dropzone_left');
+                  if (leftZone) {
+                    leftZone.style.border = isEnoughAroundPlace ?
+                      `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                      `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+                  }
+                }
                 if(target.id === 'dropzone_right') {
                   target.style.border = isCompatible && isEnoughInventoryPlace ?
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
@@ -795,7 +806,13 @@ export default {
               document.removeEventListener('mousemove', onMouseMove);
               document.removeEventListener('mouseup', onMouseUp);
               const target = eventUp.target as HTMLElement;
-              if (target && /^dropzone|^movable/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
+              //если предмет выносим за окно инвентаря
+              if (target.tagName === 'BODY' && isEnoughAroundPlace) {
+                setAround('add', [drItem]);
+                item.onmouseup = null;
+                item.style.pointerEvents = "auto";
+                item.remove();
+              } else if (target && /^dropzone|^movable/i.test(target.id) && drItem && checkDropCompatibility(drItem.category, target.id)) {
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
                 item.remove();
@@ -809,7 +826,12 @@ export default {
                 }
 
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
-                if (from === 'around' && dropzone !== 'dropzone_left' && dropzone !== 'dropzone_right' && dropzone.includes('dropzone') && isEnoughInventoryPlace) {
+                if (
+                  dropzone !== 'dropzone_left' &&
+                  dropzone !== 'dropzone_right' &&
+                  dropzone.includes('dropzone') &&
+                  isEnoughInventoryPlace
+                ) {
                   setInventory('add', [drItem]);
                 }
                 //кладем предмет в слот или боковые контейнеры
