@@ -189,16 +189,18 @@
             >
               <template v-if="item?.item">
                 <img
+                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('food', $event, item.item, idx)"
+                  draggable="false"
                   :id="'movable_food_' + idx"
                   @dblclick="handleDblClick('food', $event, item.item, idx)"
                   @contextmenu="handleRightClick('food', $event, item.item)"
                 />
+                <!-- @mousedown="handleMouseDown('food', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -219,16 +221,18 @@
             >
               <template v-if="item?.item">
                 <img
+                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('medicine', $event, item.item, idx)"
+                  draggable="false"
                   :id="'movable_medicine_' + idx"
                   @dblclick="handleDblClick('medicine', $event, item.item, idx)"
                   @contextmenu="handleRightClick('medicine', $event, item.item)"
                 />
+                <!-- @mousedown="handleMouseDown('medicine', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -249,16 +253,18 @@
             >
               <template v-if="item?.item">
                 <img
+                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('other', $event, item.item, idx)"
+                  draggable="false"
                   :id="'movable_other_' + idx"
                   @dblclick="handleDblClick('other', $event, item.item, idx)"
                   @contextmenu="handleRightClick('other', $event, item.item)"
                 />
+                <!-- @mousedown="handleMouseDown('other', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -482,6 +488,9 @@ export default {
       (newInventory) => {
         if (newInventory) {
           inventory.value = newInventory;
+          console.log('SETTT-0');
+          setEquippedItems('clear', [])
+          setEquippedItems('init', newInventory);
         }
       }, {deep: true}
     );
@@ -764,7 +773,8 @@ export default {
               if (target) {
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
                 const isDropzone = /^dropzone/i.test(target.id);
-                const isImageInSlot = /^movable/i.test(target.id);
+                const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
+                const isFastSlot = /food|medicine|other/gi.test(target.id);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if (target.tagName === 'BODY') {
@@ -784,7 +794,7 @@ export default {
                   target.style.border = isEnoughAroundPlace ?
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                } else if (isDropzone && !isSideZone) {
+                } else if (isDropzone && !isSideZone && !isFastSlot) {
                   target.style.borderColor = isCompatible && isEnoughInventoryPlace ? "orange" : "red";
                 } else if (isImageInSlot) {
                   target.style.border = (isCompatible && isEnoughInventoryPlace) ||
@@ -824,12 +834,13 @@ export default {
                     dropzone = target.id.replace('movable', 'dropzone').replace(/\d+$/, '');
                   } else dropzone = target.id.replace('movable', 'dropzone');
                 }
-
+                const isFastSlot = /food|medicine|other/gi.test(dropzone);
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
                 if (
                   dropzone !== 'dropzone_left' &&
                   dropzone !== 'dropzone_right' &&
                   dropzone.includes('dropzone') &&
+                  !isFastSlot &&
                   isEnoughInventoryPlace
                 ) {
                   setInventory('add', [drItem]);
@@ -859,16 +870,17 @@ export default {
                   setEquippedItems('add', [drItem], 'clothesDown');
                 } else if (dropzone === 'dropzone_shoes') {
                   setEquippedItems('add', [drItem], 'shoes');
-                } else if (dropzone.includes('dropzone_food')) {
-                  const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
-                  setEquippedItems('add', [drItem], 'food', putIndex);
-                } else if (dropzone.includes('dropzone_medicine')) {
-                  const putIndex = parseInt(dropzone.replace('dropzone_medicine_', ''));
-                  setEquippedItems('add', [drItem], 'medicine', putIndex);
-                } else if (dropzone.includes('dropzone_other')) {
-                  const putIndex = parseInt(dropzone.replace('dropzone_other_', ''));
-                  setEquippedItems('add', [drItem], 'other', putIndex);
-                }
+                } 
+                // else if (dropzone.includes('dropzone_food')) {
+                //   const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
+                //   setEquippedItems('add', [drItem], 'food', putIndex);
+                // } else if (dropzone.includes('dropzone_medicine')) {
+                //   const putIndex = parseInt(dropzone.replace('dropzone_medicine_', ''));
+                //   setEquippedItems('add', [drItem], 'medicine', putIndex);
+                // } else if (dropzone.includes('dropzone_other')) {
+                //   const putIndex = parseInt(dropzone.replace('dropzone_other_', ''));
+                //   setEquippedItems('add', [drItem], 'other', putIndex);
+                // }
               } else {
                 //возвращаем предмет на место если опустили вне слота
                 item.remove();
@@ -884,6 +896,8 @@ export default {
               draggedItem.value = null;
               draggedElement.value = null;
               isForceUpdate.value = true;
+              setEquippedItems('clear', []);
+              setEquippedItems('refresh', []);
               emit('reset');
           }
           document.addEventListener('mousemove', onMouseMove);
@@ -1280,6 +1294,9 @@ export default {
 }
 .slot > img {
   cursor: grab;
+}
+.slot > img.defaultcursor {
+  cursor: no-drop;
 }
 .slot.slot-x2 {
   width: 120px;

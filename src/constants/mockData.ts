@@ -50,6 +50,18 @@ export const mockAroundItems: InventoryItem[] = [
         category: 'medicine'
     },
     {
+        id: 4,
+        name: 'Обезболивающее',
+        description: 'Таблетки восстанавливающие выносливость, но не здоровье',
+        icon: './items/pain.png',
+        health: 100,
+        size: 1,
+        description_full: 'восстанавливает 50% выносливости',
+        slotable: 1,
+        stackable: 5,
+        category: 'medicine'
+    },
+    {
         id: 17,
         name: 'Сумка-XXL',
         icon: './items/bag-czech.png',
@@ -59,6 +71,54 @@ export const mockAroundItems: InventoryItem[] = [
         slotable: 1,
         stackable: 19,
         category: 'other'
+    },
+    {
+        id: 49,
+        name: '45mm ACP боеприпас',
+        description: 'хз что писать, вроде автоматный патрон',
+        icon: './items/45acp.png',
+        health: 100,
+        size: 1,
+        description_full: 'Категория: боеприпас. Начальная скорость пули, 500…550м/с Энергия пули, 600-840Дж',
+        slotable: 1,
+        stackable: 3,
+        category: 'other'
+    },
+    {
+        id: 49,
+        name: '45mm ACP боеприпас',
+        description: 'хз что писать, вроде автоматный патрон',
+        icon: './items/45acp.png',
+        health: 100,
+        size: 1,
+        description_full: 'Категория: боеприпас. Начальная скорость пули, 500…550м/с Энергия пули, 600-840Дж',
+        slotable: 1,
+        stackable: 3,
+        category: 'other'
+    },
+    {
+        id: 16,
+        name: 'Бекон',
+        description: 'Категория: еда. Консерва объемом 0.8л',
+        icon: './items/bacon.png',
+        health: 100,
+        size: 1,
+        description_full: 'Вкусная тушенка из свинины',
+        slotable: 1,
+        stackable: 3,
+        category: 'food'
+    },
+    {
+        id: 16,
+        name: 'Бекон',
+        description: 'Категория: еда. Консерва объемом 0.8л',
+        icon: './items/bacon.png',
+        health: 100,
+        size: 1,
+        description_full: 'Вкусная тушенка из свинины',
+        slotable: 1,
+        stackable: 3,
+        category: 'food'
     },
 ]
 export const mockInventoryItems: InventoryItem[] = [
@@ -135,7 +195,7 @@ export const mockInventoryItems: InventoryItem[] = [
         category: 'medicine'
     },
     {
-        id: 4,
+        id: 66,
         name: 'AWP',
         description: 'AWP - снайперская винтовка Британского производства, разработанная в компании Accuracy International.',
         icon: './items/awp.png',

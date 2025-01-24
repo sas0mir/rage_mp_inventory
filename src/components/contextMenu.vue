@@ -1,7 +1,7 @@
 <template>
     <div v-if="visible" :style="menuStyles" class="context-menu">
         <button @click="useItem">Использовать</button>
-        <button @click="dropItem">Выбросить</button>
+        <button v-if="['food', 'medicine', 'other'].indexOf($props.from) < 0" @click="dropItem">Выбросить</button>
     </div>
 </template>
 

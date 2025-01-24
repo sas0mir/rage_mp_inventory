@@ -112,6 +112,42 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                     }
                 })
             }
+        } else if (action === 'refresh') {
+            const inventory = inventoryItems.value;
+            if (inventory) {
+                inventory.map(item => {
+                    if (
+                        item.category === 'food' ||
+                        item.category === 'medicine' ||
+                        item.category === 'other'
+                    ) {
+                        if (equippedItems.value[item.category].length) {
+                            const pushIndex = equippedItems.value[item.category].findIndex((el) => el?.item.name === item.name);
+                            const nullIndex = equippedItems.value[item.category].findIndex((el) => el === null);
+                            if (
+                                pushIndex >= 0 &&
+                                equippedItems.value[item.category][pushIndex] !== null &&
+                                equippedItems.value[item.category][pushIndex]?.quantity
+                            ) {
+                                equippedItems.value[item.category][pushIndex]!.quantity ++
+                            } else if (nullIndex >= 0) {
+                                equippedItems.value[item.category][nullIndex] = ({item, quantity: 1})
+                            }
+                        }
+                    } else if (
+                        item.category === 'weapons_first' ||
+                        item.category === 'weapons_second' ||
+                        item.category === 'weapons_special' ||
+                        item.category === 'head' ||
+                        item.category === 'vest' ||
+                        item.category === 'clothesUp' ||
+                        item.category === 'clothesDown' ||
+                        item.category === 'shoes'
+                    ) {
+                        equippedItems.value[item.category] = item;
+                    }
+                })
+            }
         } else if (action === 'delete' && items[0] && category) {
             //сначала удаляем предмет из экипировки (быстрых слотов)
             if (
@@ -150,7 +186,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 medicine: [null, null, null, null, null, null, null],
                 other: [null, null, null, null, null, null],
             }
-            if (inventoryItems.value.length) inventoryItems.value = []
+            //if (inventoryItems.value.length) inventoryItems.value = []
         } else if (action === 'add') {
             if (
                 category === 'food' ||
