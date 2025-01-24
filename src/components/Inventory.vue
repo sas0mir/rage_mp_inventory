@@ -809,7 +809,7 @@ export default {
                 }
 
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
-                if (from === 'around' && dropzone !== 'dropzone_left' && dropzone !== 'dropzone_right' && isEnoughInventoryPlace) {
+                if (from === 'around' && dropzone !== 'dropzone_left' && dropzone !== 'dropzone_right' && dropzone.includes('dropzone') && isEnoughInventoryPlace) {
                   setInventory('add', [drItem]);
                 }
                 //кладем предмет в слот или боковые контейнеры
@@ -817,7 +817,7 @@ export default {
                 if (from === 'around' && dropzone !== 'dropzone_left' && !isEnoughInventoryPlace) {
                   setAround('add', [drItem]);
                   setLog(`Перемещение ${drItem?.name} не удалось, рюкзак полон. ${new Date().getHours() + ':' + new Date().getMinutes()}`)
-                } else if (dropzone === 'dropzone_left') {
+                } else if (dropzone === 'dropzone_left' && isEnoughAroundPlace) {
                   setAround('add', [drItem]);
                 } else if (dropzone === 'dropzone_right') {
                   setInventory('add', [drItem]);
