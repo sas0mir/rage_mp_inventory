@@ -32,6 +32,28 @@ export interface EquippedItems {
 
 export type EquippedItemsKeys = keyof EquippedItems;
 
+export const customOrder = [
+    'weapons_first',
+    'weapons_second',
+    'weapons_special',
+    'head',
+    'vest',
+    'clothesUp',
+    'clothesDown',
+    'shoes',
+    'backpack',
+    'ammo',
+    'food',
+    'medicine',
+    'other',
+];
+
+//сортировка боковых списков по category
+const sortItemsLists = (a: InventoryItem, b: InventoryItem) => {
+    if (a === null || b === null) return 0;
+    return customOrder.indexOf(a.category) - customOrder.indexOf(b.category);
+}
+
 export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     const aroundItems = ref<InventoryItem[]>([]);
     const inventoryItems = ref<InventoryItem[]>([]);
@@ -54,7 +76,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     function setAround(action: string, items: InventoryItem[], _idx?: number) {
         console.log(_idx);
         if (action === 'init' && items) {
-            aroundItems.value = items;
+            aroundItems.value = items.sort(sortItemsLists);
         } else if (action === 'delete' && items[0]) {
             const delIndex = aroundItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) aroundItems.value.splice(delIndex, 1);
@@ -62,12 +84,13 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             aroundItems.value = [];
         } else if (action === 'add') {
             aroundItems.value.push(items[0]);
+            aroundItems.value.sort(sortItemsLists);
         }
     }
     function setInventory(action: string, items: InventoryItem[], _idx?: number) {
         console.log(_idx);
         if (action === 'init' && items) {
-            inventoryItems.value = items;
+            inventoryItems.value = items.sort(sortItemsLists);
         } else if (action === 'delete' && items[0]) {
             const delIndex = inventoryItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
@@ -75,6 +98,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             inventoryItems.value = [];
         } else if (action === 'add') {
             inventoryItems.value.push(items[0]);
+            inventoryItems.value.sort(sortItemsLists);
         }
     }
     function setEquippedItems(action: string, items: InventoryItem[], category?: EquippedItemsKeys, index?: number) {

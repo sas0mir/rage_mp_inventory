@@ -337,7 +337,7 @@
 
 <script lang="ts">
 import { onMounted, ref, computed, onUnmounted, reactive, watch } from "vue";
-import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
+import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys, customOrder } from "../stores/inventory_items";
 import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
 import ContextMenu from "./contextMenu.vue"
@@ -476,7 +476,7 @@ export default {
       () => aroundItems.value,
       (newAround) => {
         if (newAround) {
-          around.value = newAround;
+          around.value = newAround.sort(sortItemsLists);
         }
       }, {deep: true}
     );
@@ -484,7 +484,7 @@ export default {
       () => inventoryItems.value,
       (newInventory) => {
         if (newInventory) {
-          inventory.value = newInventory;
+          inventory.value = newInventory.sort(sortItemsLists);
           // setEquippedItems('clear', [])
           setEquippedItems('refresh', []);
         }
@@ -523,6 +523,14 @@ export default {
       startAutoHideLogger();
     }
 
+    //сортировка боковых списков по category
+    const sortItemsLists = (a: InventoryItem, b: InventoryItem) => {
+      if (a === null || b === null) {
+        return 0;
+      }
+      return customOrder.indexOf(a.category) - customOrder.indexOf(b.category);
+    }
+
     //вычисляем количество слотов
     const calcSlots = (size: number, stackable: number, slotable: number) => {
       //количество делим на "размер стака" и умножаем на "количество слотов на один стак"
@@ -540,7 +548,7 @@ export default {
 
     //размер рюкзака в инвентаре
     const backpackSize = computed(() => {
-      if (inventorySlots.value.backpack !== null) {
+      if (inventorySlots.value.backpack && inventorySlots.value.backpack !== null) {
         return inventorySlots.value.backpack.size;
       } else if (!inventorySlots.value.backpack && inventory.value.length) {
         const biggestBackpack = inventory.value.reduce((max, item) => 
@@ -803,6 +811,7 @@ export default {
                   target.style.borderColor = isCompatible && isEnoughInventoryPlace ? "orange" : "red";
                 } else if (isImageInSlot) {
                   target.style.border = (isCompatible && isEnoughInventoryPlace) ||
+                  (isCompatible && !isEnoughInventoryPlace && isBackpackItem) ||
                   (/^movable_left/i.test(target.id) && isEnoughAroundPlace) ||
                   (/^movable_right/i.test(target.id) && isEnoughInventoryPlace) ||
                   (/^movable_right/i.test(target.id) && !isEnoughInventoryPlace && isBackpackItem) ?
@@ -827,7 +836,20 @@ export default {
                 //может пригодиться устанавливать привентивно дропзоны
               }
               if (target.tagName === 'BODY' && isEnoughAroundPlace) {
-                setAround('add', [drItem]);
+                if (drItem.category === 'backpack' && from !== 'around') {
+                  const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
+                  const isBackpackEquipped = !!inventorySlots.value.backpack;
+                  if (isLastBackpack) {
+                    setInventory('add', [drItem]);
+                    if (!isBackpackEquipped) {
+                    setEquippedItems('add', [drItem], 'backpack');
+                    }
+                  } else {
+                    if (!isBackpackEquipped) {
+                      setEquippedItems('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack')
+                    }
+                  }
+                } else setAround('add', [drItem]);
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
                 item.remove();
@@ -845,13 +867,15 @@ export default {
                 }
                 const isFastSlot = /food|medicine|other/gi.test(dropzone);
                 const isBackpackItem = drItem.category === 'backpack' || /рюкзак|сумка/gi.test(drItem.name);
+                const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
+                const isBackpackEquipped = !!inventorySlots.value.backpack;
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
                 if (
                   dropzone !== 'dropzone_left' &&
                   dropzone !== 'dropzone_right' &&
                   dropzone.includes('dropzone') &&
                   !isFastSlot &&
-                  isEnoughInventoryPlace
+                  (isEnoughInventoryPlace || isBackpackItem)
                 ) {
                   setInventory('add', [drItem]);
                 }
@@ -861,8 +885,19 @@ export default {
                   setAround('add', [drItem]);
                   setLog(`Перемещение ${drItem?.name} не удалось, рюкзак полон. ${new Date().getHours() + ':' + new Date().getMinutes()}`)
                 } else if (dropzone === 'dropzone_left' && isEnoughAroundPlace) {
-                  setAround('add', [drItem]);
+                  if (isBackpackItem && isLastBackpack) {
+                    setInventory('add', [drItem]);
+                    if (!isBackpackEquipped) setEquippedItems('add', [drItem], 'backpack');
+                  } else if (isBackpackItem && !isLastBackpack && !isBackpackEquipped) {
+                    setAround('add', [drItem]);
+                    setEquippedItems('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack');
+                  } else {
+                    setAround('add', [drItem]);
+                  }
                 } else if (dropzone === 'dropzone_right') {
+                  if (isBackpackItem && !isBackpackEquipped) {
+                    setEquippedItems('add', [drItem], 'backpack');
+                  }
                   setInventory('add', [drItem]);
                 } else if (dropzone === 'dropzone_weapons_first') {
                   setEquippedItems('add', [drItem], 'weapons_first');
@@ -883,6 +918,7 @@ export default {
                 } else if (dropzone === 'dropzone_backpack') {
                   setEquippedItems('add', [drItem], 'backpack');
                 }
+                //запрет перетаскивания в быстрые слоты
                 // else if (dropzone.includes('dropzone_food')) {
                 //   const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
                 //   setEquippedItems('add', [drItem], 'food', putIndex);
@@ -970,15 +1006,20 @@ export default {
       const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= backpackSize.value;
       const isEnoughAroundPlace = itemStackSize + aroundSize.value <= aroundCapacity.value;
       const isBackpackItem = item.category === 'backpack' || /рюкзак|сумка/gi.test(item.name);
+      const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
       // const equipped = isItemEquipped(item);
       if (!item) return;
       //перетаскиваем если слева - то в инвентарь,ь, если справа - то в окружение
       //в зависимости от того хватит ли места по стакам в противоположном списке
       if (from === 'right' && isEnoughAroundPlace) {
-        setAround('add', [item]);
-        if (isItemEquipped(item)) setEquippedItems('delete', [item], item.category as EquippedItemsKeys);
-        setInventory('delete', [item]);
-        setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+        if (isBackpackItem && isLastBackpack) {
+          setLog(`Быстрое перемещение ${item?.name} невозможно ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+        } else {
+          setAround('add', [item]);
+          if (isItemEquipped(item)) setEquippedItems('delete', [item], item.category as EquippedItemsKeys);
+          setInventory('delete', [item]);
+          setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+        }
       }
       if ((from === 'left' && isEnoughInventoryPlace) || (from === 'left' && !isEnoughInventoryPlace && isBackpackItem)) {
         setAround('delete', [item]);
@@ -1388,7 +1429,7 @@ export default {
   background: rgba(216, 221, 226, 0.847);
   padding: 1rem;
   border: 1px solid gray;
-  text-wrap: wrap;
+  white-space: normal;
   font-size: 1.1rem;
   z-index: 10;
   -webkit-box-shadow: 9px 2px 12px 5px rgba(0,0,0,0.75); 
