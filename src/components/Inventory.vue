@@ -688,8 +688,10 @@ export default {
     let arrowTimeout: ReturnType<typeof setTimeout>;
 
     const handleMouseDown = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
+      console.log('1');
       eventD.preventDefault();
       let forceStop = false;
+      let isMouseMoved = false;
       if (eventD.button === 2) return;
       clearTimeout(clickTimeout);
       clickTimeout = setTimeout(() => {
@@ -719,6 +721,11 @@ export default {
           //const shiftY = event.clientY - rect.top;
 
           function onMouseMove(event: MouseEvent) {
+            console.log('2');
+            if (event.buttons !== 1) {
+              event.preventDefault();
+              return
+            }
               // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
               if (!movedItemDeleted) {
                 if (from === 'around') {
@@ -826,8 +833,29 @@ export default {
                   }
                 }
               }
+              isMouseMoved = true;
           }
           function onMouseUp(eventUp: MouseEvent) {
+              console.log('3');
+              if (!isMouseMoved) {
+                //событие перетаскивания не успело сработать, удаляем с прошлого расположения принудительно
+                if (!movedItemDeleted) {
+                  if (from === 'around') {
+                    setAround('delete', [drItem]);
+                    movedItemDeleted = true;
+                  } else if (from === 'inventory') {
+                    setInventory('delete', [drItem]);
+                    if (isItemEquipped(drItem)) {
+                      setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                    }
+                    movedItemDeleted = true;
+                  } else {
+                    setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
+                    setInventory('delete', [drItem]);
+                    movedItemDeleted = true;
+                  }
+                }
+              }
               document.removeEventListener('mousemove', onMouseMove);
               document.removeEventListener('mouseup', onMouseUp);
               const target = eventUp.target as HTMLElement;
@@ -942,6 +970,9 @@ export default {
                 }
               }
               setLog(`Перемещение ${drItem?.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+              if (item) {
+                item.remove();
+              }
               draggedItem.value = null;
               draggedElement.value = null;
               isForceUpdate.value = true;
