@@ -164,18 +164,19 @@
                 @contextmenu="handleRightClick('shoes', $event, inventorySlots.shoes)"
               />
             </div>
-            <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
-              если понядобится сделать рюкзак как слот экипировки
+            <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
               <img
                 v-if="inventorySlots.backpack"
                 :src="inventorySlots.backpack.icon"
                 :alt="inventorySlots.backpack.name"
                 @mouseover="showCenterTooltip(inventorySlots.backpack)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('shoes', $event, inventorySlots.backpack)"
-                :id="'movable_backpack' + inventorySlots.backpack.id"
+                @mousedown="handleMouseDown('backpack', $event, inventorySlots.backpack)"
+                :id="'movable_backpack'"
+                @dblclick="handleDblClick('backpack', $event, inventorySlots.backpack)"
+                @contextmenu="handleRightClick('backpack', $event, inventorySlots.backpack)"
               />
-            </div> -->
+            </div>
           </div>
         </div>
         <div class="equipment equipment-food">
@@ -189,18 +190,16 @@
             >
               <template v-if="item?.item">
                 <img
-                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  draggable="false"
+                  @mousedown="handleMouseDown('food', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_food_' + idx"
                   @dblclick="handleDblClick('food', $event, item.item, idx)"
                   @contextmenu="handleRightClick('food', $event, item.item)"
                 />
-                <!-- @mousedown="handleMouseDown('food', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -221,18 +220,16 @@
             >
               <template v-if="item?.item">
                 <img
-                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  draggable="false"
+                  @mousedown="handleMouseDown('medicine', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_medicine_' + idx"
                   @dblclick="handleDblClick('medicine', $event, item.item, idx)"
                   @contextmenu="handleRightClick('medicine', $event, item.item)"
                 />
-                <!-- @mousedown="handleMouseDown('medicine', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -253,18 +250,16 @@
             >
               <template v-if="item?.item">
                 <img
-                  class="defaultcursor"
                   v-if="item?.item"
                   :src="item.item.icon"
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  draggable="false"
+                  @mousedown="handleMouseDown('other', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_other_' + idx"
                   @dblclick="handleDblClick('other', $event, item.item, idx)"
                   @contextmenu="handleRightClick('other', $event, item.item)"
                 />
-                <!-- @mousedown="handleMouseDown('other', $event, item.item, idx)" -->
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
               <template v-else>
@@ -376,6 +371,7 @@ export default {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
+        backpack: null,
         food: [null, null, null, null, null, null, null],
         medicine: [null, null, null, null, null, null, null],
         other: [null, null, null, null, null, null],
@@ -455,6 +451,7 @@ export default {
           clothesUp: null,
           clothesDown: null,
           shoes: null,
+          backpack: null,
           food: [],
           medicine: [],
           other: [],
@@ -488,8 +485,8 @@ export default {
       (newInventory) => {
         if (newInventory) {
           inventory.value = newInventory;
-          setEquippedItems('clear', [])
-          setEquippedItems('init', newInventory);
+          // setEquippedItems('clear', [])
+          setEquippedItems('refresh', []);
         }
       }, {deep: true}
     );
@@ -543,11 +540,13 @@ export default {
 
     //размер рюкзака в инвентаре
     const backpackSize = computed(() => {
-      if (inventory.value.length) {
+      if (inventorySlots.value.backpack !== null) {
+        return inventorySlots.value.backpack.size;
+      } else if (!inventorySlots.value.backpack && inventory.value.length) {
         const biggestBackpack = inventory.value.reduce((max, item) => 
-          /рюкзак|сумка/ig.test(item.name) && item.size > max.size ? item : max
+          item.category === 'backpack' && item.size > max.size ? item : max
         )
-        return biggestBackpack.size
+        return biggestBackpack ? biggestBackpack.size : 10;
       } else return 10
     });
 
@@ -648,10 +647,16 @@ export default {
     };
 
     const checkDropCompatibility = (itemCategory: string | undefined, dropzoneCategory: string | undefined) => {
+      if (
+        !dropzoneCategory ||
+        !itemCategory ||
+        (dropzoneCategory && /food|medicine|other/gi.test(dropzoneCategory))
+      ) {
+        return false
+      }
       if (dropzoneCategory === 'dropzone_left' || dropzoneCategory === 'dropzone_right') {
         return true
       }
-      if (!dropzoneCategory || !itemCategory) return false
       if (dropzoneCategory.includes('movable_left') || dropzoneCategory.includes('movable_right')) {
         return true
       }
@@ -674,7 +679,7 @@ export default {
     let clickTimeout: ReturnType<typeof setTimeout>;
     let arrowTimeout: ReturnType<typeof setTimeout>;
 
-    const handleMouseDown = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number) => {
+    const handleMouseDown = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
       eventD.preventDefault();
       let forceStop = false;
       if (eventD.button === 2) return;
@@ -774,7 +779,7 @@ export default {
                 const isDropzone = /^dropzone/i.test(target.id);
                 const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
                 const isFastSlot = /food|medicine|other/gi.test(target.id);
-                const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
+                const isBackpackItem = drItem.category === 'backpack' || /рюкзак|сумка/gi.test(drItem.name);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if (target.tagName === 'BODY') {
@@ -818,6 +823,9 @@ export default {
               document.removeEventListener('mouseup', onMouseUp);
               const target = eventUp.target as HTMLElement;
               //если предмет выносим за окно инвентаря
+              if (properTargets && properTargets.includes(target.id)) {
+                //может пригодиться устанавливать привентивно дропзоны
+              }
               if (target.tagName === 'BODY' && isEnoughAroundPlace) {
                 setAround('add', [drItem]);
                 item.onmouseup = null;
@@ -836,7 +844,7 @@ export default {
                   } else dropzone = target.id.replace('movable', 'dropzone');
                 }
                 const isFastSlot = /food|medicine|other/gi.test(dropzone);
-                const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
+                const isBackpackItem = drItem.category === 'backpack' || /рюкзак|сумка/gi.test(drItem.name);
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
                 if (
                   dropzone !== 'dropzone_left' &&
@@ -855,7 +863,6 @@ export default {
                 } else if (dropzone === 'dropzone_left' && isEnoughAroundPlace) {
                   setAround('add', [drItem]);
                 } else if (dropzone === 'dropzone_right') {
-                  console.log('WORK');
                   setInventory('add', [drItem]);
                 } else if (dropzone === 'dropzone_weapons_first') {
                   setEquippedItems('add', [drItem], 'weapons_first');
@@ -873,7 +880,9 @@ export default {
                   setEquippedItems('add', [drItem], 'clothesDown');
                 } else if (dropzone === 'dropzone_shoes') {
                   setEquippedItems('add', [drItem], 'shoes');
-                } 
+                } else if (dropzone === 'dropzone_backpack') {
+                  setEquippedItems('add', [drItem], 'backpack');
+                }
                 // else if (dropzone.includes('dropzone_food')) {
                 //   const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
                 //   setEquippedItems('add', [drItem], 'food', putIndex);
@@ -893,13 +902,14 @@ export default {
                   setInventory('add', [drItem]);
                 } else {
                   setEquippedItems('add', [drItem], from, fromIndex);
+                  setInventory('add', [drItem])
                 }
               }
               setLog(`Перемещение ${drItem?.name} из ${from} в ${target.id} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
               draggedItem.value = null;
               draggedElement.value = null;
               isForceUpdate.value = true;
-              setEquippedItems('clear', []);
+              // setEquippedItems('clear', []);
               setEquippedItems('refresh', []);
               emit('reset');
           }
@@ -959,7 +969,7 @@ export default {
       const itemStackSize = calcSlots(item.size, item.stackable, item.slotable);
       const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= backpackSize.value;
       const isEnoughAroundPlace = itemStackSize + aroundSize.value <= aroundCapacity.value;
-      const isBackpackItem = /рюкзак|сумка/gi.test(item.name);
+      const isBackpackItem = item.category === 'backpack' || /рюкзак|сумка/gi.test(item.name);
       // const equipped = isItemEquipped(item);
       if (!item) return;
       //перетаскиваем если слева - то в инвентарь,ь, если справа - то в окружение

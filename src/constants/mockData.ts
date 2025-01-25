@@ -29,7 +29,7 @@ export const mockAroundItems: InventoryItem[] = [
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
-        icon: './bpvest_1.png',
+        icon: './items/tactvest.png',
         health: 75,
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
@@ -70,7 +70,7 @@ export const mockAroundItems: InventoryItem[] = [
         size: 19,
         slotable: 1,
         stackable: 19,
-        category: 'other'
+        category: 'backpack'
     },
     {
         id: 49,
@@ -82,7 +82,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'Категория: боеприпас. Начальная скорость пули, 500…550м/с Энергия пули, 600-840Дж',
         slotable: 1,
         stackable: 3,
-        category: 'other'
+        category: 'ammo'
     },
     {
         id: 49,
@@ -94,7 +94,7 @@ export const mockAroundItems: InventoryItem[] = [
         description_full: 'Категория: боеприпас. Начальная скорость пули, 500…550м/с Энергия пули, 600-840Дж',
         slotable: 1,
         stackable: 3,
-        category: 'other'
+        category: 'ammo'
     },
     {
         id: 16,
@@ -119,6 +119,29 @@ export const mockAroundItems: InventoryItem[] = [
         slotable: 1,
         stackable: 3,
         category: 'food'
+    },
+    {
+        id: 72,
+        name: 'Противогаз',
+        description: 'Головной убор, защищает от отравления',
+        icon: './items/gasmask.png',
+        health: 100,
+        size: 1,
+        description_full: 'защита от отравления и немного брони',
+        slotable: 1,
+        stackable: 1,
+        category: 'head'
+    },
+    {
+        id: 62,
+        name: 'Рация',
+        icon: './items/radio.png',
+        description: 'Позволяет использовать голосовой чат',
+        health: 100,
+        size: 5,
+        slotable: 1,
+        stackable: 5,
+        category: 'other'
     },
 ]
 export const mockInventoryItems: InventoryItem[] = [
@@ -174,7 +197,7 @@ export const mockInventoryItems: InventoryItem[] = [
         id: 2,
         name: 'Тактический жилет',
         description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
-        icon: './bpvest_1.png',
+        icon: './items/tactvest.png',
         health: 75,
         size: 1,
         description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
@@ -212,10 +235,10 @@ export const mockInventoryItems: InventoryItem[] = [
         icon: './items/backpack.png',
         description: 'Рюкзак Койот. Тактический рюкзак средней вместимости, вместимость - 40 слотов',
         health: 100,
-        size: 40,
+        size: 50,
         slotable: 1,
-        stackable: 40,
-        category: 'other'
+        stackable: 50,
+        category: 'backpack'
     },
     {
         id: 48,
@@ -227,19 +250,19 @@ export const mockInventoryItems: InventoryItem[] = [
         description_full: 'Категория: боеприпас. Начальная скорость пули, 350…380м/с Энергия пули, 480-617Дж',
         slotable: 1,
         stackable: 3,
-        category: 'other'
+        category: 'ammo'
     },
     {
-        id: 2,
-        name: 'Тактический жилет',
-        description: 'Тактический жилет - это бронежилет, который защищает тело от пуль и осколков.',
-        icon: './bpvest_1.png',
-        health: 75,
+        id: 71,
+        name: 'Панама',
+        description: 'Головной убор, скрывает голову, не добавляет брони',
+        icon: './items/camo.png',
+        health: 100,
         size: 1,
-        description_full: 'прочность - 75%, защита от пуль - 50%, защита от осколков - 30%',
-        slotable: 3,
-        stackable: 2,
-        category: 'vest'
+        description_full: 'добавляет скрытности благодаря камуфляжной раскраске',
+        slotable: 1,
+        stackable: 1,
+        category: 'head'
     },
     {
         id: 3,
@@ -288,7 +311,29 @@ export const mockInventoryItems: InventoryItem[] = [
         slotable: 1,
         stackable: 3,
         category: 'food'
-    }
+    },
+    {
+        id: 61,
+        name: 'Бинокль',
+        icon: './items/binocular.png',
+        description: 'Аксесуар, 10х кратность обзора',
+        health: 100,
+        size: 10,
+        slotable: 1,
+        stackable: 10,
+        category: 'other'
+    },
+    {
+        id: 63,
+        name: 'Наручные часы',
+        icon: './items/watch.png',
+        description: 'Аксесуар, позволяет перематывать игровое время',
+        health: 100,
+        size: 2,
+        slotable: 1,
+        stackable: 2,
+        category: 'other'
+    },
 ]
 
 export const mockEquippedItems: EquippedItems = {
@@ -322,6 +367,7 @@ export const mockEquippedItems: EquippedItems = {
     clothesUp: null,
     clothesDown: null,
     shoes: null,
+    backpack: null,
     food: [null, null, null, null, null, null, null],
     medicine: [
         null, null, null, null, null, null,
