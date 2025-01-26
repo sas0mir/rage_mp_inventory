@@ -770,22 +770,22 @@ export default {
               }
               if (window.innerWidth < 1280) {
                 item.style.height = '30px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '90px' : '30px'; 
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '90px' : '30px'; 
               } else if (window.innerWidth < 1440) {
                 item.style.height = '33px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '99px' : '33px'; 
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '99px' : '33px'; 
               } else if (window.innerWidth < 1680) {
                 item.style.height = '40px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '120px' : '40px'; 
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '120px' : '40px'; 
               } else if (window.innerWidth < 1920) {
                 item.style.height = '47px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '141px' : '47px'; 
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '141px' : '47px'; 
               } else if (window.innerWidth < 2560) {
                 item.style.height = '53px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '159px' : '53px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '159px' : '53px';
               } else {
                 item.style.height = '60px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) ? '180px' : '60px';
+                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '180px' : '60px';
               }
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
