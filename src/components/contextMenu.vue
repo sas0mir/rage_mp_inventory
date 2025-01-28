@@ -58,8 +58,32 @@ export default defineComponent({
 
         // Методы кнопок
         const useItem = () => {
-            //mp use item todo
-            
+            //СЮДА*** mp use item todo
+            //удаляем использованный предмет
+            if (!props.item) return
+            if (props.from === 'around') {
+                setAround('delete', [props.item]);
+            }
+            if (props.from === 'inventory') {
+                setInventory('delete', [props.item]);
+            }
+            if (
+                (props.from === 'weapons_first' ||
+                props.from === 'weapons_second' ||
+                props.from === 'weapons_special' ||
+                props.from === 'head' ||
+                props.from === 'vest' ||
+                props.from === 'clothesUp' ||
+                props.from === 'clothesDown' ||
+                props.from === 'shoes' ||
+                props.from === 'backpack' ||
+                props.from === 'food' ||
+                props.from === 'medicine' ||
+                props.from === 'other') && props.item.category
+            ) {
+                setEquippedItems('delete', [props.item], props.item.category as EquippedItemsKeys);
+                setInventory('delete', [props.item]);
+            }
             setLog(`Использован ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
         };
 

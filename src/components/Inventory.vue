@@ -351,7 +351,7 @@ export default {
   emits: [],
   setup() {
     //тут подключить библиотеку mp
-    const mp = null; 
+    const mp = null;
     //стор для всех данных и работы с ними
     const inventoryItemsStore = useInventoryItemsStore();
     const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
@@ -400,43 +400,25 @@ export default {
       try {
         //если мы в игре подгружаем реальные данные
         if (mp) {
-          // mp.events.add("initSlots", (x) => setEquippedItems(‘init’, x);
-          // mp.events.add("openVueInventory", (x) => setInventory(‘init’, x);
-          // mp.events.add("openVueInventoryAround", (x) => setAround(‘init’, x);
-          // mp.events.add("clearLastInventory", () => сюда добавить то что в unMounted);
-        } else if (inventoryItems.value.length || aroundItems.value.length) {
-          around.value = aroundItems.value;
-          inventory.value = inventoryItems.value;
-          //хардкод вместимости окружения
-          aroundCapacity.value = 100;
+          mp.events.add("initSlots", (mpData: string) => setEquippedItems('init', JSON.parse(mpData)));
+          mp.events.add("openVueInventory", (mpData: string) => setInventory('init', JSON.parse(mpData)));
+          mp.events.add("openVueInventoryAround", (mpData:string) => setAround('init', JSON.parse(mpData)));
+          mp.events.add("clearLastInventory", () => clearInventory());
         } else {
           //Подгружаем мок данные из стора если нет реальных
           setAround('init', mockAroundItems);
           setInventory('init', mockInventoryItems);
-          //хардкод вместимости окружения
-          aroundCapacity.value = 100;
-        }
-        //если пришла расстановка предметов из игры или есть в сторе то ставим их
-        const inGameSlots = null;//mp.trigger(getEquippedItems);
-        const isEquippedExist = equippedItems.value.other.find(el => el !== null)?.item;
-        if (isEquippedExist) {
-          inventorySlots.value = equippedItems.value;
-        } else if (inGameSlots) {
-          inventorySlots.value = inGameSlots;
-        } else {
-          //если расставленные слоты не пришли, то заполняем их в setEquippedStore
           setEquippedItems('init', inventory.value);
         }
+        //хардкод вместимости окружения
+        //СЮДА*** надо mp метод для получения размера палатки (окружения)
+        aroundCapacity.value = 100;
       } catch (error) {
-        console.error('Ошибка получения предметов->', error);
+        setLog('Ошибка подгрузки с MP ->' + error);
       }
     }
 
-    onMounted(() => {
-      loadData();
-    });
-
-    onUnmounted(() => {
+    const clearInventory = () => {
       //Очищаем данные при уничтожении компонента
       inventory.value = [];
       around.value = [];
@@ -458,6 +440,14 @@ export default {
       setAround('clear', []);
       setInventory('clear', []);
       clearLogs();
+    }
+
+    onMounted(() => {
+      loadData();
+    });
+
+    onUnmounted(() => {
+      clearInventory();
     });
 
     //отслеживаем изменения в сторе и перерисовываем инвентарь
@@ -1002,18 +992,17 @@ export default {
     const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
       clearTimeout(clickTimeout);
       if (mp) {
-        //mp.trigger(использование предмета)
-        //если мп возвращает промис, то можно использовать async await или then для удаления использованного предмета
-        //удаляем использованный предмет
-        if (from === 'around') {
-          setAround('delete', [item], fromIndex);
-        } else if (from === 'inventory') {
-          setInventory('delete', [item], fromIndex);
-        } else {
-          setEquippedItems('delete', [item], from);
-        }
-        setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+        //СЮДА*** mp.trigger(использование предмета)
       }
+      //удаляем использованный предмет
+      if (from === 'around') {
+        setAround('delete', [item], fromIndex);
+      } else if (from === 'inventory') {
+        setInventory('delete', [item], fromIndex);
+      } else {
+        setEquippedItems('delete', [item], from, fromIndex);
+      }
+      setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       isDragComplete.value = true;
     }
 

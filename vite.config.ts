@@ -14,7 +14,7 @@ export default defineConfig({
     vueDevTools(),
     ghPages()
   ],
-  base: 'rage_mp_inventory',
+  base: '/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
