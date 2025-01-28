@@ -18,7 +18,7 @@
           @dblclick="handleDblClick('around', $event, group.item, idx)"
           @contextmenu="handleRightClick('around', $event, group.item)"
         >
-          <img :src="group.item.icon" :alt="group.item.name"/>
+          <img :src="group.item.icon" :alt="group.item.name" :class="/^weapons/i.test(group.item.category) ? 'double_image' : ''"/>
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-left">{{ group.quantity }}</label>
           <img :src="'./arrow.png'" :alt="''" class="left-arrow" @click="handleArrowClick('left', group.item, $event)">
@@ -301,7 +301,7 @@
           <img :src="'./arrow.png'" :alt="''" class="right-arrow" v-on:click="handleArrowClick('right', group.item, $event)">
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
-          <img :src="group.item.icon" :alt="group.item.name"/>
+          <img :src="group.item.icon" :alt="group.item.name" :class="/^weapons/i.test(group.item.category) ? 'double_image' : ''"/>
         </div>
       </div>
       <!-- Tooltip -->
@@ -348,8 +348,8 @@ export default {
   components: {
     ContextMenu
   },
-  emits: ['reset'],
-  setup(_, {emit}) {
+  emits: [],
+  setup() {
     //тут подключить библиотеку mp
     const mp = null; 
     //стор для всех данных и работы с ними
@@ -376,6 +376,8 @@ export default {
         medicine: [null, null, null, null, null, null, null],
         other: [null, null, null, null, null, null],
     });
+    //индикатор состояния перетаскивания предмета
+    const isDragComplete = ref(true);
     //логгер
     const logs = ref<string[]>([]);
     const isActiveLogger = ref(true);
@@ -389,7 +391,6 @@ export default {
     const contextMenuPosition = ref({ top: "0px", left: "0px" });
     const contextFromProp = ref<string>('');
     const contextItemProp = ref<InventoryItem>({} as InventoryItem);
-    const isForceUpdate = ref(false);
     //для для остановки срабатывания драгндропа на нажатие стрелки
     const isArrowClicked = ref(false);
     //вместимость окружения (машина, сундук...)
@@ -399,9 +400,10 @@ export default {
       try {
         //если мы в игре подгружаем реальные данные
         if (mp) {
-          //setAround(mp.trigger(получение предметов окружения)); //левый список
-          //setInventory(получение предметов инвентаря)); //правый список
-          //aroundCapacity.value = mp.trigger(получение вместимости окружения);
+          // mp.events.add("initSlots", (x) => setEquippedItems(‘init’, x);
+          // mp.events.add("openVueInventory", (x) => setInventory(‘init’, x);
+          // mp.events.add("openVueInventoryAround", (x) => setAround(‘init’, x);
+          // mp.events.add("clearLastInventory", () => сюда добавить то что в unMounted);
         } else if (inventoryItems.value.length || aroundItems.value.length) {
           around.value = aroundItems.value;
           inventory.value = inventoryItems.value;
@@ -431,36 +433,31 @@ export default {
     }
 
     onMounted(() => {
-      isForceUpdate.value = false;
       loadData();
     });
 
     onUnmounted(() => {
       //Очищаем данные при уничтожении компонента
-      if (isForceUpdate.value) {
-
-      } else {
-        inventory.value = [];
-        around.value = [];
-        inventorySlots.value = {
-          weapons_first: null,
-          weapons_second: null,
-          weapons_special: null,
-          head: null,
-          vest: null,
-          clothesUp: null,
-          clothesDown: null,
-          shoes: null,
-          backpack: null,
-          food: [],
-          medicine: [],
-          other: [],
-        };
-        setEquippedItems('clear', []);
-        setAround('clear', []);
-        setInventory('clear', []);
-        clearLogs();
-      }
+      inventory.value = [];
+      around.value = [];
+      inventorySlots.value = {
+        weapons_first: null,
+        weapons_second: null,
+        weapons_special: null,
+        head: null,
+        vest: null,
+        clothesUp: null,
+        clothesDown: null,
+        shoes: null,
+        backpack: null,
+        food: [],
+        medicine: [],
+        other: [],
+      };
+      setEquippedItems('clear', []);
+      setAround('clear', []);
+      setInventory('clear', []);
+      clearLogs();
     });
 
     //отслеживаем изменения в сторе и перерисовываем инвентарь
@@ -485,8 +482,9 @@ export default {
       (newInventory) => {
         if (newInventory) {
           inventory.value = newInventory.sort(sortItemsLists);
-          // setEquippedItems('clear', [])
-          setEquippedItems('refresh', []);
+          if (isDragComplete.value) {
+            setEquippedItems('refresh', []);
+          }
         }
       }, {deep: true}
     );
@@ -688,8 +686,8 @@ export default {
     let arrowTimeout: ReturnType<typeof setTimeout>;
 
     const handleMouseDown = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
-      console.log('1');
       eventD.preventDefault();
+      isDragComplete.value = false;
       let forceStop = false;
       let isMouseMoved = false;
       if (eventD.button === 2) return;
@@ -721,11 +719,26 @@ export default {
           //const shiftY = event.clientY - rect.top;
 
           function onMouseMove(event: MouseEvent) {
-            console.log('2');
             if (event.buttons !== 1) {
               event.preventDefault();
               return
             }
+              
+              //проверяем что предмет не один в слоте
+              if(
+                (from === 'food' ||
+                from === 'medicine' ||
+                from === 'other') &&
+                fromIndex !== undefined &&
+                fromIndex >= 0 &&
+                inventorySlots.value[from][fromIndex]
+              ) {
+                if (inventorySlots.value[from][fromIndex].quantity > 1 && !isItemCloned) {
+                  item = item.cloneNode(true) as HTMLElement;
+                  isItemCloned = true;
+                }
+              }
+
               // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
               if (!movedItemDeleted) {
                 if (from === 'around') {
@@ -743,20 +756,7 @@ export default {
                   movedItemDeleted = true;
                 }
               }
-              //проверяем что предмет не один в слоте
-              if(
-                (from === 'food' ||
-                from === 'medicine' ||
-                from === 'other') &&
-                fromIndex &&
-                equippedItems.value[from][fromIndex] &&
-                equippedItems.value[from][fromIndex!] !== undefined
-              ) {
-                if (equippedItems.value[from][fromIndex!]!.quantity > 1 && !isItemCloned) {
-                  item = item.cloneNode(true) as HTMLElement;
-                  isItemCloned = true;
-                }
-              }
+
               // Переводим элемент в абсолютное позиционирование
               item.style.position = "absolute";
               item.style.zIndex = "1000";
@@ -836,7 +836,6 @@ export default {
               isMouseMoved = true;
           }
           function onMouseUp(eventUp: MouseEvent) {
-              console.log('3');
               if (!isMouseMoved) {
                 //событие перетаскивания не успело сработать, удаляем с прошлого расположения принудительно
                 if (!movedItemDeleted) {
@@ -975,10 +974,9 @@ export default {
               }
               draggedItem.value = null;
               draggedElement.value = null;
-              isForceUpdate.value = true;
               // setEquippedItems('clear', []);
-              setEquippedItems('refresh', []);
-              emit('reset');
+              //setEquippedItems('refresh', []);
+              isDragComplete.value = true;
           }
           document.addEventListener('mousemove', onMouseMove);
           document.addEventListener('mouseup', onMouseUp);
@@ -1016,6 +1014,7 @@ export default {
         }
         setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
+      isDragComplete.value = true;
     }
 
     const handleRightClick = (from: string, event: MouseEvent, item: InventoryItem) => {
@@ -1060,6 +1059,7 @@ export default {
       if (from === 'left' && !isEnoughInventoryPlace || from === 'right' && !isEnoughAroundPlace) {
         setLog(`Быстрое перемещение ${item?.name} невозможно инвентарь полон ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
+      isDragComplete.value = true;
       clearTimeout(arrowTimeout);
       arrowTimeout = setTimeout(() => {
         isArrowClicked.value = false;
@@ -1284,10 +1284,13 @@ export default {
 }
 
 .inventory-side-item > img {
-  max-width: 120px;
+  max-width: 60px;
   max-height: 60px;
   cursor: grab;
   background-color: black;
+}
+.inventory-side-item > img.double_image {
+  max-width: 120px;
 }
 
 .inventory-side-item > p {
@@ -1548,8 +1551,11 @@ img.rotated {
     height: 57px;
   }
   .inventory-side-item > img {
-    max-width: 114px;
+    max-width: 57px;
     max-height: 57px;
+  }
+  .inventory-side-item > img.double_image {
+    max-width: 114px;
   }
   .inventory-side-item > p {
     padding: 0 0.9rem;
@@ -1620,8 +1626,11 @@ img.rotated {
     height: 53px;
   }
   .inventory-side-item > img {
-    max-width: 106px;
+    max-width: 53px;
     max-height: 53px;
+  }
+  .inventory-side-item > img.double_image {
+    max-width: 106px;
   }
   .inventory-side-item > p {
     padding: 0 0.8rem;
@@ -1692,8 +1701,11 @@ img.rotated {
     height: 50px;
   }
   .inventory-side-item > img {
-    max-width: 100px;
+    max-width: 50px;
     max-height: 50px;
+  }
+  .inventory-side-item > img.double_image {
+    max-width: 100px;
   }
   .inventory-side-item > p {
     padding: 0 0.7rem;
@@ -1764,8 +1776,11 @@ img.rotated {
     height: 42px;
   }
   .inventory-side-item > img {
-    max-width: 84px;
+    max-width: 42px;
     max-height: 42px;
+  }
+  .inventory-side-item > img.double_image {
+    max-width: 84px;
   }
   .inventory-side-item > p {
     padding: 0 0.6rem;
@@ -1836,8 +1851,11 @@ img.rotated {
     height: 35px;
   }
   .inventory-side-item > img {
-    max-width: 70px;
+    max-width: 35px;
     max-height: 35px;
+  }
+  .inventory-side-item > img.double_image {
+    max-width: 70px;
   }
   .inventory-side-item > p {
     padding: 0 0.5rem;
@@ -1909,10 +1927,12 @@ img.rotated {
     height: 30px;
   }
   .inventory-side-item > img {
-    max-width: 60px;
+    max-width: 30px;
     max-height: 30px;
   }
-
+  .inventory-side-item > img.double_image {
+    max-width: 60px;
+  }
   .inventory-side-item > p {
     padding: 0 0.4rem;
     font-size: 0.4rem;

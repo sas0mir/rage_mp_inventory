@@ -1,6 +1,6 @@
 <template>
   <div id="content">
-    <Inventory :key="inventoryKey" @reset="resetInventory" />
+    <Inventory :key="inventoryKey" />
   </div>
 </template>
 

@@ -59,6 +59,7 @@ export default defineComponent({
         // Методы кнопок
         const useItem = () => {
             //mp use item todo
+            
             setLog(`Использован ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
         };
 

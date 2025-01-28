@@ -174,7 +174,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 })
             }
         } else if (action === 'delete' && items[0] && category) {
-            //сначала удаляем предмет из экипировки (быстрых слотов)
             if (
                 category === 'food' ||
                 category === 'medicine' ||
@@ -194,9 +193,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
             } else {
                 equippedItems.value[category] = null;
             }
-            //затем из инвентаря
-            // const delIndex = inventoryItems.value.findIndex(el => el && el.name === items[0]?.name);
-            // if (delIndex > -1) inventoryItems.value.splice(delIndex, 1);
         } else if (action === 'clear') {
             equippedItems.value = {
                 weapons_first: null,
