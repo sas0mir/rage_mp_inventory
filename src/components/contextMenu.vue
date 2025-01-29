@@ -58,8 +58,6 @@ export default defineComponent({
 
         // Методы кнопок
         const useItem = () => {
-            //СЮДА*** mp use item todo
-            //удаляем использованный предмет
             if (!props.item) return
             if (props.from === 'around') {
                 setAround('delete', [props.item]);

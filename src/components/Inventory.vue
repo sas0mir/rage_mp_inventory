@@ -337,7 +337,7 @@
 
 <script lang="ts">
 import { onMounted, ref, computed, onUnmounted, reactive, watch } from "vue";
-import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys, customOrder } from "../stores/inventory_items";
+import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
 import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
 import ContextMenu from "./contextMenu.vue"
@@ -351,7 +351,7 @@ export default {
   emits: [],
   setup() {
     //тут подключить библиотеку mp
-    const mp = null;
+    // const mp = null;
     //стор для всех данных и работы с ними
     const inventoryItemsStore = useInventoryItemsStore();
     const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
@@ -463,7 +463,7 @@ export default {
       () => aroundItems.value,
       (newAround) => {
         if (newAround) {
-          around.value = newAround.sort(sortItemsLists);
+          around.value = newAround;//.sort(sortItemsLists);
         }
       }, {deep: true}
     );
@@ -471,7 +471,7 @@ export default {
       () => inventoryItems.value,
       (newInventory) => {
         if (newInventory) {
-          inventory.value = newInventory.sort(sortItemsLists);
+          inventory.value = newInventory;//.sort(sortItemsLists);
           if (isDragComplete.value) {
             setEquippedItems('refresh', []);
           }
@@ -512,12 +512,12 @@ export default {
     }
 
     //сортировка боковых списков по category
-    const sortItemsLists = (a: InventoryItem, b: InventoryItem) => {
-      if (a === null || b === null) {
-        return 0;
-      }
-      return customOrder.indexOf(a.category) - customOrder.indexOf(b.category);
-    }
+    // const sortItemsLists = (a: InventoryItem, b: InventoryItem) => {
+    //   if (a === null || b === null) {
+    //     return 0;
+    //   }
+    //   return customOrder.indexOf(a.category) - customOrder.indexOf(b.category);
+    // }
 
     //вычисляем количество слотов
     const calcSlots = (size: number, stackable: number, slotable: number) => {
@@ -805,7 +805,9 @@ export default {
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
                   `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
                 } else if (isDropzone && !isSideZone && !isFastSlot) {
-                  target.style.borderColor = isCompatible && isEnoughInventoryPlace ? "orange" : "red";
+                  target.style.border = isCompatible && isEnoughInventoryPlace ? 
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
                 } else if (isImageInSlot) {
                   target.style.border = (isCompatible && isEnoughInventoryPlace) ||
                   (isCompatible && !isEnoughInventoryPlace && isBackpackItem) ||
@@ -819,7 +821,7 @@ export default {
                   if(isSideZone || isImageInSlot) {
                     target.style.border = "none";
                   } else if (isDropzone && !isSideZone) {
-                    target.style.borderColor = "gray";
+                    target.style.border = `${window.screen.width > 1920 ? '2px' : '1px'} solid rgb(75, 75, 75)`;
                   }
                 }
               }
@@ -992,7 +994,7 @@ export default {
     const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
       clearTimeout(clickTimeout);
       if (mp) {
-        //СЮДА*** mp.trigger(использование предмета)
+        mp.trigger('useInventoryItem', fromIndex);
       }
       //удаляем использованный предмет
       if (from === 'around') {
@@ -1001,6 +1003,7 @@ export default {
         setInventory('delete', [item], fromIndex);
       } else {
         setEquippedItems('delete', [item], from, fromIndex);
+        setInventory('delete', [item]);
       }
       setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       isDragComplete.value = true;
@@ -1273,13 +1276,15 @@ export default {
 }
 
 .inventory-side-item > img {
-  max-width: 60px;
-  max-height: 60px;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  object-position: center;
   cursor: grab;
   background-color: black;
 }
 .inventory-side-item > img.double_image {
-  max-width: 120px;
+  width: 120px;
 }
 
 .inventory-side-item > p {
@@ -1367,11 +1372,13 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px dashed gray;
+  border: 2px solid rgb(75, 75, 75);
   box-sizing: border-box;
 }
 .slot > img {
   cursor: grab;
+  object-fit: contain;
+  object-position: center;
 }
 .slot > img.defaultcursor {
   cursor: no-drop;
@@ -1540,11 +1547,11 @@ img.rotated {
     height: 57px;
   }
   .inventory-side-item > img {
-    max-width: 57px;
-    max-height: 57px;
+    width: 57px;
+    height: 57px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 114px;
+    width: 114px;
   }
   .inventory-side-item > p {
     padding: 0 0.9rem;
@@ -1564,7 +1571,7 @@ img.rotated {
     height: 60px;
     width: 60px;
     margin: 0 0.5rem;
-    border: 2px dashed gray;
+    border: 2px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 174px;
@@ -1615,11 +1622,11 @@ img.rotated {
     height: 53px;
   }
   .inventory-side-item > img {
-    max-width: 53px;
-    max-height: 53px;
+    width: 53px;
+    height: 53px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 106px;
+    width: 106px;
   }
   .inventory-side-item > p {
     padding: 0 0.8rem;
@@ -1639,7 +1646,7 @@ img.rotated {
     height: 56px;
     width: 56px;
     margin: 0 0.5rem;
-    border: 2px dashed gray;
+    border: 2px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 156px;
@@ -1690,11 +1697,11 @@ img.rotated {
     height: 50px;
   }
   .inventory-side-item > img {
-    max-width: 50px;
-    max-height: 50px;
+    width: 50px;
+    height: 50px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 100px;
+    width: 100px;
   }
   .inventory-side-item > p {
     padding: 0 0.7rem;
@@ -1714,7 +1721,7 @@ img.rotated {
     height: 52px;
     width: 52px;
     margin: 0 0.4rem;
-    border: 1px dashed gray;
+    border: 1px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 141px;
@@ -1765,11 +1772,11 @@ img.rotated {
     height: 42px;
   }
   .inventory-side-item > img {
-    max-width: 42px;
-    max-height: 42px;
+    width: 42px;
+    height: 42px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 84px;
+    width: 84px;
   }
   .inventory-side-item > p {
     padding: 0 0.6rem;
@@ -1789,7 +1796,7 @@ img.rotated {
     height: 47px;
     width: 47px;
     margin: 0 0.3rem;
-    border: 1px dashed gray;
+    border: 1px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 129px;
@@ -1840,11 +1847,11 @@ img.rotated {
     height: 35px;
   }
   .inventory-side-item > img {
-    max-width: 35px;
-    max-height: 35px;
+    width: 35px;
+    height: 35px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 70px;
+    width: 70px;
   }
   .inventory-side-item > p {
     padding: 0 0.5rem;
@@ -1864,7 +1871,7 @@ img.rotated {
     height: 37px;
     width: 37px;
     margin: 0 0.3rem;
-    border: 1px dashed gray;
+    border: 1px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 96px;
@@ -1916,11 +1923,11 @@ img.rotated {
     height: 30px;
   }
   .inventory-side-item > img {
-    max-width: 30px;
-    max-height: 30px;
+    width: 30px;
+    height: 30px;
   }
   .inventory-side-item > img.double_image {
-    max-width: 60px;
+    width: 60px;
   }
   .inventory-side-item > p {
     padding: 0 0.4rem;
@@ -1940,7 +1947,7 @@ img.rotated {
     height: 30px;
     width: 30px;
     margin: 0 0.2rem;
-    border: 1px dashed gray;
+    border: 1px solid rgb(75, 75, 75);
   }
   .slot.slot-x3 {
     width: 78px;
