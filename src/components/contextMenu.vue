@@ -59,6 +59,9 @@ export default defineComponent({
         // Методы кнопок
         const useItem = () => {
             if (!props.item) return
+            if (mp) {
+                mp.trigger('useItem', props.item.id);
+            }
             if (props.from === 'around') {
                 setAround('delete', [props.item]);
             }
