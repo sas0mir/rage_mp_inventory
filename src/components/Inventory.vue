@@ -315,7 +315,12 @@
           <p>Размер: {{ tooltipItem.slotable }}</p>
         </div>
       </div>
-      <button class="logger-btn" @click="activateLogger">{{ isActiveLogger ? 'Logger+' : 'Logger-' }}</button>
+      <button class="logger-btn" :class="isActiveLogger ? 'logger-btn-active' : ''" @click="activateLogger">
+        <img :src="'./logger-btn-icon.png'" :alt="'logger'" />
+      </button>
+      <button class="indicator-btn" :class="isActiveIndicator ? 'logger-btn-active' : ''" @click="activateIndicator">
+        <img :src="'./indicator-btn-icon.png'" :alt="'indicator'" />
+      </button>
     </section>
     <div
         v-if="showLogger"
@@ -350,8 +355,16 @@ export default {
   },
   emits: [],
   setup() {
-    //тут подключить библиотеку mp
-    // const mp = null;
+    // const mp = {
+    //   events: {
+    //     add: () => {},
+    //     remove: () => {},
+    //     call: () => {},
+    //   },
+    //   trigger: (action?: string, indicator?: number | string) => {
+    //     console.log('TRIGGER->', action, indicator)
+    //   }
+    // };
     //стор для всех данных и работы с ними
     const inventoryItemsStore = useInventoryItemsStore();
     const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
@@ -381,6 +394,7 @@ export default {
     //логгер
     const logs = ref<string[]>([]);
     const isActiveLogger = ref(true);
+    const isActiveIndicator = ref(false);
     const showLogger = ref(false);
     let hideLoggerTimer: ReturnType<typeof setTimeout>;; //таймер скрытия логов
     const isLoggerHovered = ref(false);
@@ -471,6 +485,7 @@ export default {
       () => inventoryItems.value,
       (newInventory) => {
         if (newInventory) {
+          setLog(newInventory[0].toString())
           inventory.value = newInventory;//.sort(sortItemsLists);
           if (isDragComplete.value) {
             setEquippedItems('refresh', []);
@@ -495,6 +510,9 @@ export default {
         showLogger.value = false;
         isActiveLogger.value = false;
       } else isActiveLogger.value = true;
+    }
+    const activateIndicator = () => {
+      isActiveIndicator.value = !isActiveIndicator.value;
     }
     const startAutoHideLogger = () => {
       if (isLoggerHovered.value) return; //курсор на логгере
@@ -779,7 +797,7 @@ export default {
               }
               //подсвечиваем элемент, на который можно положить предмет
               const target = event.target as HTMLElement;
-              if (target) {
+              if (target && isActiveIndicator.value) {
                 const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
                 const isDropzone = /^dropzone/i.test(target.id);
                 const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
@@ -994,7 +1012,7 @@ export default {
     const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
       clearTimeout(clickTimeout);
       if (mp) {
-        mp.trigger('useInventoryItem', fromIndex);
+        mp.trigger('useInventoryItem', item.id);
       }
       //удаляем использованный предмет
       if (from === 'around') {
@@ -1092,7 +1110,9 @@ export default {
       showLogger,
       logs,
       isActiveLogger,
+      isActiveIndicator,
       activateLogger,
+      activateIndicator,
       startAutoHideLogger,
       cancelAutoHideLogger,
       returnAutoHideLogger,
@@ -1110,7 +1130,7 @@ export default {
 <style scoped>
 .inventory {
   position: fixed;
-  top: 15vh;
+  top: 20vh;
   left: 20vw;
   display: flex;
   justify-content: space-between;
@@ -1491,17 +1511,23 @@ export default {
 }
 
 /* logger */
-.logger-btn {
+.logger-btn, .indicator-btn {
   position: absolute;
   bottom: 0;
   left: 0;
+  height: 1.5rem;
+  width: 1.5rem;
+  object-fit: contain;
   cursor: pointer;
   font-size: 1rem;
-  color: green;
-  background-color: black;
-  padding: 0.1rem;
-  border-radius: 0.3rem;
+  background-color: grey;
   border: none;
+}
+.indicator-btn {
+  left: 2rem;
+}
+.logger-btn-active, .indicator-btn-active {
+  background-color: green;
 }
 .logger {
   position: absolute;
@@ -1594,8 +1620,12 @@ img.rotated {
     font-size: 0.9rem;
     padding: 0.9rem;
   }
-  .logger-btn {
-    font-size: 0.9rem;
+  .logger-btn, .indicator-btn {
+    height: 1.3rem;
+    width: 1.3rem;
+  }
+  .indicator-btn {
+    left: 1.7rem;
   }
   .logger p {
     font-size: 0.9rem;
@@ -1669,8 +1699,12 @@ img.rotated {
     font-size: 0.8rem;
     padding: 0.8rem;
   }
-  .logger-btn {
-    font-size: 0.8rem;
+  .logger-btn, .indicator-btn {
+    height: 1.2rem;
+    width: 1.2rem;
+  }
+  .indicator-btn {
+    left: 1.5rem;
   }
   .logger p {
     font-size: 0.8rem;
@@ -1744,8 +1778,12 @@ img.rotated {
     font-size: 0.7rem;
     padding: 0.7rem;
   }
-  .logger-btn {
-    font-size: 0.7rem;
+  .logger-btn, .indicator-btn {
+    height: 1.1rem;
+    width: 1.1rem;
+  }
+  .indicator-btn {
+    left: 1.3rem;
   }
   .logger p {
     font-size: 0.7rem;
@@ -1819,8 +1857,12 @@ img.rotated {
     font-size: 0.6rem;
     padding: 0.6rem;
   }
-  .logger-btn {
-    font-size: 0.6rem;
+  .logger-btn, .indicator-btn {
+    height: 1rem;
+    width: 1rem;
+  }
+  .indicator-btn {
+    left: 1.2rem;
   }
   .logger p {
     font-size: 0.6rem;
@@ -1894,8 +1936,12 @@ img.rotated {
     font-size: 0.5rem;
     padding: 0.5rem;
   }
-  .logger-btn {
-    font-size: 0.5rem;
+  .logger-btn, .indicator-btn {
+    height: 0.8rem;
+    width: 0.8rem;
+  }
+  .indicator-btn {
+    left: 1rem;
   }
   .logger p {
     font-size: 0.5rem;
@@ -1970,8 +2016,12 @@ img.rotated {
     font-size: 0.5rem;
     padding: 0.4rem;
   }
-  .logger-btn {
-    font-size: 0.4rem;
+  .logger-btn, .indicator-btn {
+    height: 0.7rem;
+    width: 0.7rem;
+  }
+  .indicator-btn {
+    left: 0.9rem;
   }
   .logger p {
     font-size: 0.4rem;

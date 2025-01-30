@@ -53,6 +53,16 @@ export const customOrder = [
 //     if (a === null || b === null) return 0;
 //     return customOrder.indexOf(a.category) - customOrder.indexOf(b.category);
 // }
+const mp = {
+    events: {
+      add: () => {},
+      remove: () => {},
+      call: () => {},
+    },
+    trigger: (action?: string, indicator?: number | string) => {
+      console.log('TRIGGER->', action, indicator)
+    }
+};
 
 export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     const aroundItems = ref<InventoryItem[]>([]);
@@ -76,19 +86,19 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
     function setAround(action: string, items: InventoryItem[], _idx?: number) {
         console.log(_idx);
         if (action === 'init' && items) {
-            aroundItems.value = items.sort(sortItemsLists);
+            aroundItems.value = items;//.sort(sortItemsLists);
         } else if (action === 'delete' && items[0]) {
             const delIndex = aroundItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) {
-                mp.trigger('deleteAround', delIndex);
+                if (mp) mp.trigger('deleteAround', delIndex);
                 aroundItems.value.splice(delIndex, 1);
             }
         } else if (action === 'clear') {
-            mp.trigger('deleteAround', 'all');
+            if (mp) mp.trigger('deleteAround', 'all');
             aroundItems.value = [];
         } else if (action === 'add') {
             aroundItems.value.push(items[0]);
-            mp.trigger('addAround', items[0].id);
+            if (mp) mp.trigger('addAround', items[0].id);
             //aroundItems.value.sort(sortItemsLists);
         }
     }
@@ -99,14 +109,14 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         } else if (action === 'delete' && items[0]) {
             const delIndex = inventoryItems.value.findIndex(el => el && el.id === items[0]?.id);
             if (delIndex > -1) {
-                mp.trigger('deleteInventoryItem', delIndex);
+                if (mp) mp.trigger('deleteInventoryItem', delIndex);
                 inventoryItems.value.splice(delIndex, 1);
             }
         } else if (action === 'clear') {
-            mp.trigger('deleteInventoryItem', 'all');
+            if (mp) mp.trigger('deleteInventoryItem', 'all');
             inventoryItems.value = [];
         } else if (action === 'add') {
-            mp.trigger('addInventory', items[0].id);
+            if (mp) mp.trigger('addInventory', items[0].id);
             inventoryItems.value.push(items[0]);
             // inventoryItems.value.sort(sortItemsLists);
         }
@@ -196,14 +206,14 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                     equippedItems.value[category][delIndex] !== null &&
                     equippedItems.value[category][delIndex].quantity > 1) 
                 {
-                    mp.trigger(`delete${category}`, delIndex);
+                    if (mp) mp.trigger(`delete${category}`, delIndex);
                     equippedItems.value[category].splice(delIndex, 1, {item: items[0], quantity: equippedItems.value[category][delIndex].quantity - 1});
                 } else {
-                    mp.trigger(`delete${category}`, delIndex);
+                    if (mp) mp.trigger(`delete${category}`, delIndex);
                     equippedItems.value[category].splice(delIndex, 1, null);
                 }
             } else {
-                mp.trigger(`delete${category}`, 0);
+                if (mp) mp.trigger(`delete${category}`, 0);
                 equippedItems.value[category] = null;
             }
         } else if (action === 'clear') {
@@ -221,7 +231,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 medicine: [null, null, null, null, null, null, null],
                 other: [null, null, null, null, null, null],
             }
-            mp.trigger(`deleteEquippedItems`, 'all');
+            if (mp) mp.trigger(`deleteEquippedItems`, 'all');
             //if (inventoryItems.value.length) inventoryItems.value = []
         } else if (action === 'add') {
             if (
@@ -230,7 +240,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 category === 'other'
             ) {
                 if (index !== undefined && equippedItems.value[category][index] === null) {
-                    mp.trigger(`add${category}`, items[0].id);
+                    if (mp) mp.trigger(`add${category}`, items[0].id);
                     equippedItems.value[category].splice(index, 1, {item: items[0], quantity: 1});
                 } else if (index !== undefined && equippedItems.value[category][index]?.quantity) {
                     //если слот занят
@@ -239,7 +249,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                     } else {
                         equippedItems.value[category][index] = {item: items[0], quantity: 1}
                     }
-                    mp.trigger(`add${category}`, items[0].id);
+                    if (mp) mp.trigger(`add${category}`, items[0].id);
                 }
             } else if (
                 category === 'weapons_first' ||
@@ -252,7 +262,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 category === 'shoes' ||
                 category === 'backpack'
             ) {
-                mp.trigger(`add${category}`, items[0].id);
+                if (mp) mp.trigger(`add${category}`, items[0].id);
                 equippedItems.value[category] = items[0]
             }
         }

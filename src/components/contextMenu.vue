@@ -33,6 +33,16 @@ export default defineComponent({
         const logger = useLogger();
         const { setLog } = logger;
         const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
+        const mp = {
+            events: {
+                add: () => {},
+                remove: () => {},
+                call: () => {},
+            },
+            trigger: (action?: string, indicator?: number | string) => {
+                console.log('TRIGGER->', action, indicator)
+            }
+        };
 
         const isArmor = computed(() => {
             const isProperFrom = props.from !== 'inventory' && props.from !== 'around';
