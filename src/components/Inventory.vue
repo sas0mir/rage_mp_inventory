@@ -37,7 +37,7 @@
       </div>
     </section>
 
-    <!-- Инвентарь игрока -->
+    <!-- Быстрые слоты -->
     <section class="inventory-box side-center">
       <h3>Быстрые слоты</h3>
       <div class="inventory-container container-column inventory-space-between">
@@ -77,6 +77,9 @@
               />
             </div>
           </div>
+        </div>
+        <div class="equipment equipment-weapons">
+          <h4></h4>
           <div class="grid grid-one-fraction">
             <div
               class="slot slot-x3"
@@ -1220,6 +1223,7 @@ export default {
   display: flex;
   padding: 1rem;
   margin: 0;
+  width: 100%;
   height: 95%;
   overflow: auto;
   scrollbar-width: 10px;
@@ -1336,17 +1340,15 @@ export default {
   display: flex;
   flex-direction: column;
   height: 17%;
+  width: 100%;
 }
 .equipment h4 {
   font-size: 0.9rem;
   text-align: center;
   margin: 0;
-}
-.equipment-weapons {
-  height: 32%;
+  height: 10%;
 }
 .equipment-accesories {
-  padding-top: 1rem;
   background-image: url('/bgt.png');
   background-repeat: no-repeat;
   background-position: center;
@@ -1367,14 +1369,12 @@ export default {
   justify-content: left;
   padding: 0.5rem;
   align-content: center;
+  height: 90%;
+  width: 100%;
+  align-items: stretch;
 }
 .grid-two-fraction {
   justify-content: space-around;
-}
-@media (min-aspect-ratio: 16/9) {
-  .grid-two-fraction {
-    padding: 0px !important;
-  }
 }
 .grid-one-fraction {
   justify-content: center;
@@ -1385,20 +1385,23 @@ export default {
 
 .slot {
   position: relative;
-  width: 62px;
-  height: 62px;
-  margin: 0 0.7rem;
+  height: 90%;
+  aspect-ratio: 1/1;
+  margin: 0 0.5rem;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   border: 2px solid rgb(75, 75, 75);
   box-sizing: border-box;
+  object-fit: contain;
+  object-position: center;
+  overflow: hidden;
 }
 .slot > img {
   cursor: grab;
   object-fit: contain;
-  object-position: center;
+  display: block;
 }
 .slot > img.defaultcursor {
   cursor: no-drop;
@@ -1407,12 +1410,27 @@ export default {
   width: 120px;
 }
 .slot.slot-x3 {
-  width: 180px;
-  height: 60px;
+  aspect-ratio: 3/1;
+  height: 90%;
 }
 .slot-x3 > img {
   width: auto;
-  height: 60px;
+  height: 100%;
+}
+@media (max-aspect-ratio: 16/9) {
+  .grid {
+    height: auto;
+    max-height: 90%;
+  }
+  .slot {
+    height: auto !important;
+    aspect-ratio: 1/1;
+    width: 12%;
+  }
+  .slot.slot-x3 {
+    width: 36%;
+    aspect-ratio: 3/1;
+  }
 }
 .slot-bg-head {
   background-image: url('/inventory_slot_helm.png');
@@ -1594,20 +1612,8 @@ img.rotated {
     padding: 0.5rem;
   }
   .slot {
-    height: 60px;
-    width: 60px;
     margin: 0 0.5rem;
     border: 2px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 174px;
-    height: 58px;
-  }
-  .slot-x3 > img {
-    height: 58px;
-  }
-  .equipment-accesories {
-    padding-top: 0.9rem;
   }
   .equipment-quantity-label {
     font-size: 0.9rem;
@@ -1673,20 +1679,8 @@ img.rotated {
     padding: 0.5;
   }
   .slot {
-    height: 56px;
-    width: 56px;
     margin: 0 0.5rem;
     border: 2px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 156px;
-    height: 52px;
-  }
-  .slot-x3 > img {
-    height: 52px;
-  }
-  .equipment-accesories {
-    padding-top: 0.8rem;
   }
   .equipment-quantity-label {
     font-size: 0.8rem;
@@ -1752,20 +1746,8 @@ img.rotated {
     padding: 0.4rem;
   }
   .slot {
-    height: 52px;
-    width: 52px;
     margin: 0 0.4rem;
     border: 1px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 141px;
-    height: 47px;
-  }
-  .slot-x3 > img {
-    height: 47px;
-  }
-  .equipment-accesories {
-    padding-top: 0.7rem;
   }
   .equipment-quantity-label {
     font-size: 0.7rem;
@@ -1831,20 +1813,8 @@ img.rotated {
     padding: 0.3rem;
   }
   .slot {
-    height: 47px;
-    width: 47px;
     margin: 0 0.3rem;
     border: 1px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 129px;
-    height: 43px;
-  }
-  .slot-x3 > img {
-    height: 43px;
-  }
-  .equipment-accesories {
-    padding-top: 0.6rem;
   }
   .equipment-quantity-label {
     font-size: 0.6rem;
@@ -1910,20 +1880,8 @@ img.rotated {
     padding: 0.3rem;
   }
   .slot {
-    height: 37px;
-    width: 37px;
     margin: 0 0.3rem;
     border: 1px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 96px;
-    height: 32px;
-  }
-  .slot-x3 > img {
-    height: 32px;
-  }
-  .equipment-accesories {
-    padding-top: 0.5rem;
   }
   .equipment-quantity-label {
     font-size: 0.5rem;
@@ -1990,20 +1948,8 @@ img.rotated {
     padding: 0.2rem;
   }
   .slot {
-    height: 30px;
-    width: 30px;
     margin: 0 0.2rem;
     border: 1px solid rgb(75, 75, 75);
-  }
-  .slot.slot-x3 {
-    width: 78px;
-    height: 26px;
-  }
-  .slot-x3 > img {
-    height: 26px;
-  }
-  .equipment-accesories {
-    padding-top: 0.4rem;
   }
   .equipment-quantity-label {
     font-size: 0.4rem;
