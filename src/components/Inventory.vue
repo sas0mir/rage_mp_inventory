@@ -167,7 +167,7 @@
                 @contextmenu="handleRightClick('shoes', $event, inventorySlots.shoes)"
               />
             </div>
-            <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
+            <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
               <img
                 v-if="inventorySlots.backpack"
                 :src="inventorySlots.backpack.icon"
@@ -179,7 +179,7 @@
                 @dblclick="handleDblClick('backpack', $event, inventorySlots.backpack)"
                 @contextmenu="handleRightClick('backpack', $event, inventorySlots.backpack)"
               />
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="equipment equipment-food">
@@ -372,7 +372,6 @@ export default {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        backpack: null,
         food: [null, null, null, null, null, null, null],
         medicine: [null, null, null, null, null, null, null],
         other: [null, null, null, null, null, null],
@@ -397,6 +396,27 @@ export default {
     const isArrowClicked = ref(false);
     //вместимость окружения (машина, сундук...)
     const aroundCapacity = ref(0);
+    //мап для вычиления вместимости рюкзака
+    const backpackSizes = new Map([
+    ["Рюкзак-XS", 10],
+    ["Рюкзак-L", 12],
+    ["Сумка-XS", 14],
+    ["Сумка-S", 16],
+    ["Рюкзак-Зеленый", 50],
+    ["Сумка-XXL", 19],
+    ["Сумка-Пучи", 20],
+    ["Рюкзак-Берген", 73],
+    ["Рюкзак-Городской", 35],
+    ["Рюкзак-Койот", 40],
+    ["Рюкзак-Тактик", 56],
+    ["Рюкзак-Тортила", 43],
+    ["Рюкзак-Бореалес", 38],
+    ["Сумка-Спортивная", 30],
+    ["Рюкзак-Калифорния", 45],
+    ["Сумка-Талун", 15],
+    ["Сумка-Оружейная", 20],
+    ["Рюкзак-Камуфляжный", 28]
+    ]);
 
     const loadData = async () => {
       try {
@@ -432,7 +452,6 @@ export default {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        backpack: null,
         food: [],
         medicine: [],
         other: [],
@@ -524,14 +543,15 @@ export default {
                         if (fastSlot) {
                           trigger(`setSlot${fastSlot}`, item);
                         }
-                    } else if (item.category === 'backpack') {
-                        //вешаем самый большой по size рюкзак
-                        if (inventorySlots.value.backpack !== null && item.size > inventorySlots.value.backpack.size) {
-                            inventorySlots.value.backpack = item;
-                        } else if (inventorySlots.value.backpack === null) {
-                            inventorySlots.value.backpack = item;
-                        }
-                    }
+                    } 
+                    // else if (item.category === 'backpack') {
+                    //     //вешаем самый большой по size рюкзак
+                    //     if (inventorySlots.value.backpack !== null && item.size > inventorySlots.value.backpack.size) {
+                    //         inventorySlots.value.backpack = item;
+                    //     } else if (inventorySlots.value.backpack === null) {
+                    //         inventorySlots.value.backpack = item;
+                    //     }
+                    // }
                 })
             }
         } else if (action === 'refresh') {
@@ -598,7 +618,6 @@ export default {
                 clothesUp: null,
                 clothesDown: null,
                 shoes: null,
-                backpack: null,
                 food: [null, null, null, null, null, null, null],
                 medicine: [null, null, null, null, null, null, null],
                 other: [null, null, null, null, null, null],
@@ -628,8 +647,7 @@ export default {
                 category === 'vest' ||
                 category === 'clothesUp' ||
                 category === 'clothesDown' ||
-                category === 'shoes' ||
-                category === 'backpack'
+                category === 'shoes'
             ) {
                 inventorySlots.value[category] = items[0]
                 const fastSlot = category === 'weapons_first' ? 'One' :
@@ -684,7 +702,6 @@ export default {
             from === 'clothesUp' ||
             from === 'clothesDown' ||
             from === 'shoes' ||
-            from === 'backpack' ||
             from === 'food' ||
             from === 'medicine' ||
             from === 'other') && item.category
@@ -693,6 +710,7 @@ export default {
             setInventory('delete', [item]);
             trigger('dropFromInventory', item, itemIndex);
         }
+        trigger('useItem', item, itemIndex);
         setLog(`Использован ${item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
       if (action === 'dropItem') {
@@ -713,7 +731,6 @@ export default {
             from === 'clothesUp' ||
             from === 'clothesDown' ||
             from === 'shoes' ||
-            from === 'backpack' ||
             from === 'food' ||
             from === 'medicine' ||
             from === 'other') && item.category
@@ -763,6 +780,10 @@ export default {
         //убираем предмет из быстрого слота (передаем не индекс а id предмета)
         if (['removeSlotOne', 'removeSlotTwo', 'removeSlotThree'].indexOf(action) >= 0) {
           mp.trigger('remoteCallServer', action, item.id.toString());
+        }
+        //использование предмета
+        if (action === 'useItem') {
+          mp.trigger('remoteCallServer', "use", item.id.toString());
         }
         setLog(`Триггер ${action} index=${index}`);
       }
@@ -818,13 +839,11 @@ export default {
 
     //размер рюкзака в инвентаре
     const backpackSize = computed(() => {
-      if (inventorySlots.value.backpack && inventorySlots.value.backpack !== null) {
-        return inventorySlots.value.backpack.size;
-      } else if (!inventorySlots.value.backpack && inventory.value.length) {
+      if (inventory.value.length) {
         const biggestBackpack = inventory.value.reduce((max, item) => 
-          item.category === 'backpack' && item.size > max.size ? item : max
+          /сумка|рюкзак/gi.test(item.name) && item.size > max.size ? item : max
         )
-        return biggestBackpack ? biggestBackpack.size : 10;
+        return biggestBackpack ? backpackSizes.get(biggestBackpack.name) : 10;
       } else return 10
     });
 
@@ -972,7 +991,7 @@ export default {
           const target = eventD.target as HTMLElement;
           let item = target.closest("[id*='movable']") as HTMLElement;
           const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
-          const isEnoughInventoryPlace = from === 'around' ?
+          const isEnoughInventoryPlace = from === 'around' && backpackSize.value ?
             itemStackSize + inventorySize.value <= backpackSize.value : true;
           const isEnoughAroundPlace = from !== 'around' ? itemStackSize + aroundSize.value <= aroundCapacity.value : true;
           const triggerIndex = from === 'around' ? around.value.findIndex(i => i.id === drItem.id) :
@@ -1071,7 +1090,7 @@ export default {
                 const isDropzone = /^dropzone/i.test(target.id);
                 const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
                 const isFastSlot = /food|medicine|other/gi.test(target.id);
-                const isBackpackItem = drItem.category === 'backpack' || /рюкзак|сумка/gi.test(drItem.name);
+                const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
                 //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
                 const isCompatible = checkDropCompatibility(drItem?.category, target.id);
                 if (target.tagName === 'BODY') {
@@ -1144,20 +1163,21 @@ export default {
                 //может пригодиться устанавливать привентивно дропзоны
               }
               if (target.tagName === 'BODY' && isEnoughAroundPlace) {
-                if (drItem.category === 'backpack' && from !== 'around') {
-                  const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
-                  const isBackpackEquipped = !!inventorySlots.value.backpack;
-                  if (isLastBackpack) {
-                    setInventory('add', [drItem]);
-                    if (!isBackpackEquipped) {
-                    setInventorySlots('add', [drItem], 'backpack');
-                    }
-                  } else {
-                    if (!isBackpackEquipped) {
-                      setInventorySlots('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack')
-                    }
-                  }
-                } else setAround('add', [drItem]);
+                //if (drItem.category === 'backpack' && from !== 'around') {
+                  // const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
+                  // const isBackpackEquipped = !!inventorySlots.value.backpack;
+                  // if (isLastBackpack) {
+                  //   setInventory('add', [drItem]);
+                  //   if (!isBackpackEquipped) {
+                  //   setInventorySlots('add', [drItem], 'backpack');
+                  //   }
+                  // } else {
+                  //   if (!isBackpackEquipped) {
+                  //     setInventorySlots('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack')
+                  //   }
+                  // }
+                //}
+                setAround('add', [drItem]);
                 item.onmouseup = null;
                 item.style.pointerEvents = "auto";
                 item.remove();
@@ -1174,9 +1194,8 @@ export default {
                   } else dropzone = target.id.replace('movable', 'dropzone');
                 }
                 const isFastSlot = /food|medicine|other/gi.test(dropzone);
-                const isBackpackItem = drItem.category === 'backpack' || /рюкзак|сумка/gi.test(drItem.name);
-                const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
-                const isBackpackEquipped = !!inventorySlots.value.backpack;
+                const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
+                const isLastBackpack = inventory.value.filter(item => /рюкзак|сумка/gi.test(item.name)).length < 2;
                 //если кладем в слот экипировки и есть место, то добавляем и в инвентарь
                 if (
                   dropzone !== 'dropzone_left' &&
@@ -1196,17 +1215,10 @@ export default {
                 } else if (dropzone === 'dropzone_left' && isEnoughAroundPlace) {
                   if (isBackpackItem && isLastBackpack) {
                     setInventory('add', [drItem]);
-                    if (!isBackpackEquipped) setInventorySlots('add', [drItem], 'backpack');
-                  } else if (isBackpackItem && !isLastBackpack && !isBackpackEquipped) {
-                    setAround('add', [drItem]);
-                    setInventorySlots('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack');
                   } else {
                     setAround('add', [drItem]);
                   }
                 } else if (dropzone === 'dropzone_right') {
-                  if (isBackpackItem && !isBackpackEquipped) {
-                    setInventorySlots('add', [drItem], 'backpack');
-                  }
                   setInventory('add', [drItem]);
                   if (from === 'around') trigger('pickFromAround', drItem, triggerIndex);
                 } else if (dropzone === 'dropzone_weapons_first') {
@@ -1225,8 +1237,6 @@ export default {
                   setInventorySlots('add', [drItem], 'clothesDown');
                 } else if (dropzone === 'dropzone_shoes') {
                   setInventorySlots('add', [drItem], 'shoes');
-                } else if (dropzone === 'dropzone_backpack') {
-                  setInventorySlots('add', [drItem], 'backpack');
                 }
                 //запрет перетаскивания в быстрые слоты
                 // else if (dropzone.includes('dropzone_food')) {
@@ -1295,6 +1305,7 @@ export default {
         setInventory('delete', [item]);
         trigger('dropFromInventory', item, fromIndex);
       }
+      trigger('useItem', item, fromIndex);
       setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       isDragComplete.value = true;
     }
@@ -1315,10 +1326,10 @@ export default {
       event.stopPropagation();
       isArrowClicked.value = true;
       const itemStackSize = calcSlots(item.size, item.stackable, item.slotable);
-      const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= backpackSize.value;
+      const isEnoughInventoryPlace = itemStackSize + inventorySize.value <= (backpackSize.value || 10);
       const isEnoughAroundPlace = itemStackSize + aroundSize.value <= aroundCapacity.value;
-      const isBackpackItem = item.category === 'backpack' || /рюкзак|сумка/gi.test(item.name);
-      const isLastBackpack = inventory.value.filter(item => item.category === 'backpack').length === 0;
+      const isBackpackItem = /рюкзак|сумка/gi.test(item.name);
+      const isLastBackpack = inventory.value.filter(item => /рюкзак|сумка/gi.test(item.name)).length < 2;
       // const equipped = isItemEquipped(item);
       if (!item) return;
       //перетаскиваем если слева - то в инвентарь,ь, если справа - то в окружение

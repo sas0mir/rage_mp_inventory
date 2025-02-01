@@ -24,7 +24,6 @@ export interface EquippedItems {
     clothesUp: InventoryItem | null,
     clothesDown: InventoryItem | null,
     shoes: InventoryItem | null,
-    backpack: InventoryItem | null,
     food: ({ item: InventoryItem; quantity: number } | null)[],
     medicine: ({ item: InventoryItem; quantity: number } | null)[],
     other: ({ item: InventoryItem; quantity: number } | null)[],
@@ -41,7 +40,6 @@ export const customOrder = [
     'clothesUp',
     'clothesDown',
     'shoes',
-    'backpack',
     'ammo',
     'food',
     'medicine',
@@ -67,7 +65,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
         clothesUp: null,
         clothesDown: null,
         shoes: null,
-        backpack: null,
         food: [null, null, null, null, null, null, null],
         medicine: [null, null, null, null, null, null, null],
         other: [null, null, null, null, null, null],
@@ -140,14 +137,15 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                         item.category === 'shoes'
                     ) {
                         equippedItems.value[item.category] = item;
-                    } else if (item.category === 'backpack') {
-                        //вешаем самый большой по size рюкзак
-                        if (equippedItems.value.backpack !== null && item.size > equippedItems.value.backpack.size) {
-                            equippedItems.value.backpack = item;
-                        } else if (equippedItems.value.backpack === null) {
-                            equippedItems.value.backpack = item;
-                        }
-                    }
+                    } 
+                    // else if (item.category === 'backpack') {
+                    //     //вешаем самый большой по size рюкзак
+                    //     if (equippedItems.value.backpack !== null && item.size > equippedItems.value.backpack.size) {
+                    //         equippedItems.value.backpack = item;
+                    //     } else if (equippedItems.value.backpack === null) {
+                    //         equippedItems.value.backpack = item;
+                    //     }
+                    // }
                 })
             }
         } else if (action === 'refresh') {
@@ -208,7 +206,6 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 clothesUp: null,
                 clothesDown: null,
                 shoes: null,
-                backpack: null,
                 food: [null, null, null, null, null, null, null],
                 medicine: [null, null, null, null, null, null, null],
                 other: [null, null, null, null, null, null],
@@ -238,8 +235,7 @@ export const useInventoryItemsStore = defineStore('inventoryItems', () => {
                 category === 'vest' ||
                 category === 'clothesUp' ||
                 category === 'clothesDown' ||
-                category === 'shoes' ||
-                category === 'backpack'
+                category === 'shoes'
             ) {
                 equippedItems.value[category] = items[0]
             }

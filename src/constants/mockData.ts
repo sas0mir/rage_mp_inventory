@@ -367,7 +367,6 @@ export const mockEquippedItems: EquippedItems = {
     clothesUp: null,
     clothesDown: null,
     shoes: null,
-    backpack: null,
     food: [null, null, null, null, null, null, null],
     medicine: [
         null, null, null, null, null, null,
