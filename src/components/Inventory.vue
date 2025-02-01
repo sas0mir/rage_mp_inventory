@@ -340,16 +340,16 @@
       :position="contextMenuPosition"
       :from="contextFromProp"
       :item="contextItemProp"
+      @contextEvent="handleContextUsage"
     />
 </template>
 
 <script lang="ts">
 import { onMounted, ref, computed, onUnmounted, reactive, watch } from "vue";
-import { useInventoryItemsStore, type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
+import { type InventoryItem, type EquippedItems, type EquippedItemsKeys } from "../stores/inventory_items";
 import { useLogger } from "../stores/logger";
 import { mockAroundItems, mockInventoryItems } from "../constants/mockData";
 import ContextMenu from "./contextMenu.vue"
-import { storeToRefs } from "pinia";
 
 export default {
   name: "UserInventory",
@@ -358,21 +358,6 @@ export default {
   },
   emits: [],
   setup() {
-    // const mp = {
-    //   events: {
-    //     add: () => {},
-    //     remove: () => {},
-    //     call: () => {},
-    //   },
-    //   trigger: (action?: string, indicator?: number | string) => {
-    //     console.log('TRIGGER->', action, indicator)
-    //   }
-    // };
-    //стор для всех данных и работы с ними
-    const inventoryItemsStore = useInventoryItemsStore();
-    const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
-    const { equippedItems, aroundItems, inventoryItems } = storeToRefs(inventoryItemsStore)
-    //стор с логами (действия в инвентаре)
     const loggerStore = useLogger();
     const { setLog, clearLogs } = loggerStore;
     //Данные для рендера 3х блоков инвентаря
@@ -417,7 +402,7 @@ export default {
       try {
         //если мы в игре подгружаем реальные данные
         if (mp) {
-          mp.events.add("initSlots", (mpData: string) => setEquippedItems('init', JSON.parse(mpData)));
+          mp.events.add("initSlots", (mpData: string) => setInventorySlots('init', JSON.parse(mpData)));
           mp.events.add("openVueInventory", (mpData: string) => setInventory('init', JSON.parse(mpData)));
           mp.events.add("openVueInventoryAround", (mpData:string) => setAround('init', JSON.parse(mpData)));
           mp.events.add("clearLastInventory", () => clearInventory());
@@ -425,10 +410,9 @@ export default {
           //Подгружаем мок данные из стора если нет реальных
           setAround('init', mockAroundItems);
           setInventory('init', mockInventoryItems);
-          setEquippedItems('init', inventory.value);
+          setInventorySlots('init', inventory.value);
         }
         //хардкод вместимости окружения
-        //СЮДА*** надо mp метод для получения размера палатки (окружения)
         aroundCapacity.value = 100;
       } catch (error) {
         setLog('Ошибка подгрузки с MP ->' + error);
@@ -453,7 +437,7 @@ export default {
         medicine: [],
         other: [],
       };
-      setEquippedItems('clear', []);
+      setInventorySlots('clear', []);
       setAround('clear', []);
       setInventory('clear', []);
       clearLogs();
@@ -467,32 +451,203 @@ export default {
       clearInventory();
     });
 
-    //отслеживаем изменения в сторе и перерисовываем инвентарь
-    watch(
-      () => equippedItems.value,
-      (newSlots) => {
-        if (newSlots) {
-          inventorySlots.value = {...newSlots};
+    //init, clear, add, delete для каждой зоны (Окружение/Экипировка/Инвентарь)
+    function setAround(action: string, items: InventoryItem[], _idx?: number) {
+        console.log(_idx);
+        if (action === 'init' && items) {
+            around.value = items;//.sort(sortItemsLists);
+        } else if (action === 'delete' && items[0]) {
+            const delIndex = around.value.findIndex(el => el && el.id === items[0]?.id);
+            if (delIndex > -1) {
+                around.value.splice(delIndex, 1);
+            }
+        } else if (action === 'clear') {
+            around.value = [];
+        } else if (action === 'add') {
+            around.value.push(items[0]);
+            //aroundItems.value.sort(sortItemsLists);
         }
-      }, {deep: true}
-    );
-    watch(
-      () => aroundItems.value,
-      (newAround) => {
-        if (newAround) {
-          around.value = newAround;//.sort(sortItemsLists);
+    }
+    function setInventory(action: string, items: InventoryItem[], _idx?: number) {
+        console.log(_idx);
+        if (action === 'init' && items) {
+            inventory.value = items;//.sort(sortItemsLists);
+        } else if (action === 'delete' && items[0]) {
+            const delIndex = inventory.value.findIndex(el => el && el.id === items[0]?.id);
+            if (delIndex > -1) {
+                inventory.value.splice(delIndex, 1);
+            }
+        } else if (action === 'clear') {
+            inventory.value = [];
+        } else if (action === 'add') {
+            inventory.value.push(items[0]);
+            // inventoryItems.value.sort(sortItemsLists);
         }
-      }, {deep: true}
-    );
+    }
+    function setInventorySlots(action: string, items: InventoryItem[], category?: EquippedItemsKeys, index?: number) {
+        if (action === 'init') {
+            const inventoryItems = items.length ? items : inventory.value;
+            if (inventoryItems) {
+                inventoryItems.map(item => {
+                    if (
+                        item.category === 'food' ||
+                        item.category === 'medicine' ||
+                        item.category === 'other'
+                    ) {
+                        if (inventorySlots.value[item.category].length) {
+                            const pushIndex = inventorySlots.value[item.category].findIndex((el) => el?.item.name === item.name);
+                            const nullIndex = inventorySlots.value[item.category].findIndex((el) => el === null);
+                            if (
+                                pushIndex >= 0 &&
+                                inventorySlots.value[item.category][pushIndex] !== null &&
+                                inventorySlots.value[item.category][pushIndex]?.quantity
+                            ) {
+                                inventorySlots.value[item.category][pushIndex]!.quantity ++
+                            } else if (nullIndex >= 0) {
+                                inventorySlots.value[item.category][nullIndex] = ({item, quantity: 1})
+                            }
+                        }
+                    } else if (
+                        item.category === 'weapons_first' ||
+                        item.category === 'weapons_second' ||
+                        item.category === 'weapons_special' ||
+                        item.category === 'head' ||
+                        item.category === 'vest' ||
+                        item.category === 'clothesUp' ||
+                        item.category === 'clothesDown' ||
+                        item.category === 'shoes'
+                    ) {
+                        inventorySlots.value[item.category] = item;
+                        const fastSlot = item.category === 'weapons_first' ? 'One' :
+                        item.category === 'weapons_second' ? 'Two' :
+                        item.category === 'weapons_special' ? 'Three' : '';
+                        if (fastSlot) {
+                          trigger(`setSlot${fastSlot}`, item);
+                        }
+                    } else if (item.category === 'backpack') {
+                        //вешаем самый большой по size рюкзак
+                        if (inventorySlots.value.backpack !== null && item.size > inventorySlots.value.backpack.size) {
+                            inventorySlots.value.backpack = item;
+                        } else if (inventorySlots.value.backpack === null) {
+                            inventorySlots.value.backpack = item;
+                        }
+                    }
+                })
+            }
+        } else if (action === 'refresh') {
+            const inventoryItems = inventory.value;
+            if (inventoryItems) {
+                inventorySlots.value.food = [null, null, null, null, null, null, null];
+                inventorySlots.value.medicine = [null, null, null, null, null, null, null];
+                inventorySlots.value.other = [null, null, null, null, null, null];
+                inventoryItems.map(item => {
+                    if (
+                        item.category === 'food' ||
+                        item.category === 'medicine' ||
+                        item.category === 'other'
+                    ) {
+                        if (inventorySlots.value[item.category].length) {
+                            const pushIndex = inventorySlots.value[item.category].findIndex((el) => el?.item.name === item.name);
+                            const nullIndex = inventorySlots.value[item.category].findIndex((el) => el === null);
+                            if (
+                                pushIndex >= 0 &&
+                                inventorySlots.value[item.category][pushIndex] !== null &&
+                                inventorySlots.value[item.category][pushIndex]?.quantity
+                            ) {
+                                inventorySlots.value[item.category][pushIndex]!.quantity ++
+                            } else if (nullIndex >= 0) {
+                                inventorySlots.value[item.category][nullIndex] = ({item, quantity: 1})
+                            }
+                        }
+                    }
+                })
+            }
+        } else if (action === 'delete' && items[0] && category) {
+            if (
+                category === 'food' ||
+                category === 'medicine' ||
+                category === 'other'
+            ) {
+                const delIndex = index !== undefined && index >= 0 ?
+                    index :
+                    inventorySlots.value[category].findIndex(el => el !== null && el.item && el.item.id === items[0]?.id);
+                if (
+                    inventorySlots.value[category][delIndex] !== null &&
+                    inventorySlots.value[category][delIndex].quantity > 1) 
+                {
+                    inventorySlots.value[category].splice(delIndex, 1, {item: items[0], quantity: inventorySlots.value[category][delIndex].quantity - 1});
+                } else {
+                    inventorySlots.value[category].splice(delIndex, 1, null);
+                }
+            } else {
+                inventorySlots.value[category] = null;
+                const fastSlot = category === 'weapons_first' ? 'One' :
+                  category === 'weapons_second' ? 'Two' :
+                  category === 'weapons_special' ? 'Three' : '';
+                if (fastSlot) {
+                  trigger(`removeSlot${fastSlot}`, items[0]);
+                }
+            }
+        } else if (action === 'clear') {
+            inventorySlots.value = {
+                weapons_first: null,
+                weapons_second: null,
+                weapons_special: null,
+                head: null,
+                vest: null,
+                clothesUp: null,
+                clothesDown: null,
+                shoes: null,
+                backpack: null,
+                food: [null, null, null, null, null, null, null],
+                medicine: [null, null, null, null, null, null, null],
+                other: [null, null, null, null, null, null],
+            }
+            //if (inventoryItems.value.length) inventoryItems.value = []
+        } else if (action === 'add') {
+            if (
+                category === 'food' ||
+                category === 'medicine' ||
+                category === 'other'
+            ) {
+                if (index !== undefined && inventorySlots.value[category][index] === null) {
+                    inventorySlots.value[category].splice(index, 1, {item: items[0], quantity: 1});
+                } else if (index !== undefined && inventorySlots.value[category][index]?.quantity) {
+                    //если слот занят
+                    if (inventorySlots.value[category][index].item.name === items[0].name) {
+                        inventorySlots.value[category][index].quantity ++;
+                    } else {
+                        inventorySlots.value[category][index] = {item: items[0], quantity: 1}
+                    }
+                }
+            } else if (
+                category === 'weapons_first' ||
+                category === 'weapons_second' ||
+                category === 'weapons_special' ||
+                category === 'head' ||
+                category === 'vest' ||
+                category === 'clothesUp' ||
+                category === 'clothesDown' ||
+                category === 'shoes' ||
+                category === 'backpack'
+            ) {
+                inventorySlots.value[category] = items[0]
+                const fastSlot = category === 'weapons_first' ? 'One' :
+                  category === 'weapons_second' ? 'Two' :
+                  category === 'weapons_special' ? 'Three' : '';
+                if (fastSlot) {
+                  trigger(`setSlot${fastSlot}`, items[0]);
+                }
+            }
+        }
+    }
+
     watch(
-      () => inventoryItems.value,
+      () => inventory.value,
       (newInventory) => {
-        if (newInventory) {
-          setLog(newInventory[0].toString())
-          inventory.value = newInventory;//.sort(sortItemsLists);
-          if (isDragComplete.value) {
-            setEquippedItems('refresh', []);
-          }
+        if (newInventory && isDragComplete.value) {
+          //как только в инвентавь падает предмет, добавляем его в слот если необходимо
+          setInventorySlots('refresh', []);
         }
       }, {deep: true}
     );
@@ -506,6 +661,112 @@ export default {
         }
       }, {deep: true}
     );
+
+    //срабатывание методов контекстного меню
+    const handleContextUsage = (action: string, from: string, item: InventoryItem) => {
+      if (!item) return
+      const itemIndex = from === 'inventory' ? inventory.value.findIndex(i => i.id === item.id) :
+        from === 'around' ? around.value.findIndex(i => i.id === item.id) : -1;
+      if (action === 'useItem') {
+        if (from === 'around') {
+            setAround('delete', [item]);
+        }
+        if (from === 'inventory') {
+            setInventory('delete', [item]);
+            trigger('dropFromInventory', item, itemIndex);
+        }
+        if (
+            (from === 'weapons_first' ||
+            from === 'weapons_second' ||
+            from === 'weapons_special' ||
+            from === 'head' ||
+            from === 'vest' ||
+            from === 'clothesUp' ||
+            from === 'clothesDown' ||
+            from === 'shoes' ||
+            from === 'backpack' ||
+            from === 'food' ||
+            from === 'medicine' ||
+            from === 'other') && item.category
+        ) {
+            setInventorySlots('delete', [item], item.category as EquippedItemsKeys);
+            setInventory('delete', [item]);
+            trigger('dropFromInventory', item, itemIndex);
+        }
+        setLog(`Использован ${item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+      if (action === 'dropItem') {
+        if (from === 'around') {
+            setAround('delete', [item]);
+        }
+        if (from === 'inventory') {
+            setAround('add', [item]);
+            setInventory('delete', [item]);
+            trigger('dropFromInventory', item, itemIndex);
+        }
+        if (
+            (from === 'weapons_first' ||
+            from === 'weapons_second' ||
+            from === 'weapons_special' ||
+            from === 'head' ||
+            from === 'vest' ||
+            from === 'clothesUp' ||
+            from === 'clothesDown' ||
+            from === 'shoes' ||
+            from === 'backpack' ||
+            from === 'food' ||
+            from === 'medicine' ||
+            from === 'other') && item.category
+        ) {
+            setInventorySlots('delete', [item], item.category as EquippedItemsKeys);
+            setAround('add', [item]);
+            setInventory('delete', [item]);
+            trigger('dropFromInventory', item, itemIndex);
+        }
+        setLog(`Выкинут ${item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+      if (action === 'equip') {
+        setInventorySlots('add', [item], item.category as EquippedItemsKeys);
+        if (from === 'around') {
+            setInventory('add', [item]);
+            setAround('delete', [item]);
+            trigger('pickFromAround', item, itemIndex);
+        }
+        setLog(`Надет ${item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+      if (action === 'unEquip') {
+        setInventorySlots('delete', [item], item.category as EquippedItemsKeys);
+        setLog(`Снят ${item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+      if (action === 'moveToInventory') {
+        setInventory('add', [item]);
+        setAround('delete', [item]);
+        trigger('pickFromAround', item, itemIndex);
+        setLog(`Перемещен ${item?.name} в инвентарь ${new Date().getHours() + ':' + new Date().getMinutes()}`);
+      }
+    }
+
+    const trigger = (action: string, item: InventoryItem, index?: number) => {
+      if (mp) {
+        //выкидываем в окружение из инвентаря (передаем индекс придмета в массиве inventory)
+        if (action === 'dropFromInventory' && index) {
+          mp.trigger('dropCallRemote', 'dropCallServer', index.toString());
+        }
+        //поднимаем из окружения в инвентарь (передаем индекс придмета в массиве around)
+        if (action === 'pickFromAround' && index) {
+          mp.trigger("pickRemoteCallClient", "pickRemoteCall", index.toString());
+        }
+        //ставим предмет в быстрые слоты (передаем не индекс а id предмета)
+        if (['setSlotOne', 'setSlotTwo', 'setSlotThree'].indexOf(action) >= 0) {
+          mp.trigger('remoteCallServer', action, item.id.toString());
+        }
+        //убираем предмет из быстрого слота (передаем не индекс а id предмета)
+        if (['removeSlotOne', 'removeSlotTwo', 'removeSlotThree'].indexOf(action) >= 0) {
+          mp.trigger('remoteCallServer', action, item.id.toString());
+        }
+        setLog(`Триггер ${action} index=${index}`);
+      }
+    }
 
     //работа логгера
     const activateLogger = () => {
@@ -714,6 +975,9 @@ export default {
           const isEnoughInventoryPlace = from === 'around' ?
             itemStackSize + inventorySize.value <= backpackSize.value : true;
           const isEnoughAroundPlace = from !== 'around' ? itemStackSize + aroundSize.value <= aroundCapacity.value : true;
+          const triggerIndex = from === 'around' ? around.value.findIndex(i => i.id === drItem.id) :
+            from === 'inventory' ? inventory.value.findIndex(i => i.id === drItem.id) : -1;
+
           if (!item) return;
 
           // Устанавливаем перетаскиваемый элемент
@@ -757,13 +1021,15 @@ export default {
                   movedItemDeleted = true;
                 } else if (from === 'inventory') {
                   setInventory('delete', [drItem]);
+                  trigger('dropFromInventory', drItem, triggerIndex);
                   if (isItemEquipped(drItem)) {
-                    setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                    setInventorySlots('delete', [drItem], drItem.category as keyof EquippedItems);
                   }
                   movedItemDeleted = true;
                 } else {
-                  setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
+                  setInventorySlots('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
                   setInventory('delete', [drItem]);
+                  trigger('dropFromInventory', drItem, triggerIndex);
                   movedItemDeleted = true;
                 }
               }
@@ -857,13 +1123,15 @@ export default {
                     movedItemDeleted = true;
                   } else if (from === 'inventory') {
                     setInventory('delete', [drItem]);
+                    trigger('dropFromInventory', drItem, triggerIndex);
                     if (isItemEquipped(drItem)) {
-                      setEquippedItems('delete', [drItem], drItem.category as keyof EquippedItems);
+                      setInventorySlots('delete', [drItem], drItem.category as keyof EquippedItems);
                     }
                     movedItemDeleted = true;
                   } else {
-                    setEquippedItems('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
+                    setInventorySlots('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
                     setInventory('delete', [drItem]);
+                    trigger('dropFromInventory', drItem, triggerIndex);
                     movedItemDeleted = true;
                   }
                 }
@@ -882,11 +1150,11 @@ export default {
                   if (isLastBackpack) {
                     setInventory('add', [drItem]);
                     if (!isBackpackEquipped) {
-                    setEquippedItems('add', [drItem], 'backpack');
+                    setInventorySlots('add', [drItem], 'backpack');
                     }
                   } else {
                     if (!isBackpackEquipped) {
-                      setEquippedItems('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack')
+                      setInventorySlots('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack')
                     }
                   }
                 } else setAround('add', [drItem]);
@@ -918,6 +1186,7 @@ export default {
                   (isEnoughInventoryPlace || isBackpackItem)
                 ) {
                   setInventory('add', [drItem]);
+                  if (from === 'around') trigger('pickFromAround', drItem, triggerIndex);
                 }
                 //кладем предмет в слот или боковые контейнеры
                 //отменяем перенос если места в рюкзаке нет
@@ -927,47 +1196,48 @@ export default {
                 } else if (dropzone === 'dropzone_left' && isEnoughAroundPlace) {
                   if (isBackpackItem && isLastBackpack) {
                     setInventory('add', [drItem]);
-                    if (!isBackpackEquipped) setEquippedItems('add', [drItem], 'backpack');
+                    if (!isBackpackEquipped) setInventorySlots('add', [drItem], 'backpack');
                   } else if (isBackpackItem && !isLastBackpack && !isBackpackEquipped) {
                     setAround('add', [drItem]);
-                    setEquippedItems('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack');
+                    setInventorySlots('add', [inventory.value.filter(item => item.category === 'backpack')[0]], 'backpack');
                   } else {
                     setAround('add', [drItem]);
                   }
                 } else if (dropzone === 'dropzone_right') {
                   if (isBackpackItem && !isBackpackEquipped) {
-                    setEquippedItems('add', [drItem], 'backpack');
+                    setInventorySlots('add', [drItem], 'backpack');
                   }
                   setInventory('add', [drItem]);
+                  if (from === 'around') trigger('pickFromAround', drItem, triggerIndex);
                 } else if (dropzone === 'dropzone_weapons_first') {
-                  setEquippedItems('add', [drItem], 'weapons_first');
+                  setInventorySlots('add', [drItem], 'weapons_first');
                 } else if (dropzone === 'dropzone_weapons_second') {
-                  setEquippedItems('add', [drItem], 'weapons_second');
+                  setInventorySlots('add', [drItem], 'weapons_second');
                 } else if (dropzone === 'dropzone_weapons_special') {
-                  setEquippedItems('add', [drItem], 'weapons_special');
-                }else if (dropzone === 'dropzone_head') {
-                  setEquippedItems('add', [drItem], 'head');
+                  setInventorySlots('add', [drItem], 'weapons_special');
+                } else if (dropzone === 'dropzone_head') {
+                  setInventorySlots('add', [drItem], 'head');
                 } else if (dropzone === 'dropzone_vest') {
-                  setEquippedItems('add', [drItem], 'vest');
+                  setInventorySlots('add', [drItem], 'vest');
                 } else if (dropzone === 'dropzone_clothesUp') {
-                  setEquippedItems('add', [drItem], 'clothesUp');
+                  setInventorySlots('add', [drItem], 'clothesUp');
                 } else if (dropzone === 'dropzone_clothesDown') {
-                  setEquippedItems('add', [drItem], 'clothesDown');
+                  setInventorySlots('add', [drItem], 'clothesDown');
                 } else if (dropzone === 'dropzone_shoes') {
-                  setEquippedItems('add', [drItem], 'shoes');
+                  setInventorySlots('add', [drItem], 'shoes');
                 } else if (dropzone === 'dropzone_backpack') {
-                  setEquippedItems('add', [drItem], 'backpack');
+                  setInventorySlots('add', [drItem], 'backpack');
                 }
                 //запрет перетаскивания в быстрые слоты
                 // else if (dropzone.includes('dropzone_food')) {
                 //   const putIndex = parseInt(dropzone.replace('dropzone_food_', ''));
-                //   setEquippedItems('add', [drItem], 'food', putIndex);
+                //   setInventorySlots('add', [drItem], 'food', putIndex);
                 // } else if (dropzone.includes('dropzone_medicine')) {
                 //   const putIndex = parseInt(dropzone.replace('dropzone_medicine_', ''));
-                //   setEquippedItems('add', [drItem], 'medicine', putIndex);
+                //   setInventorySlots('add', [drItem], 'medicine', putIndex);
                 // } else if (dropzone.includes('dropzone_other')) {
                 //   const putIndex = parseInt(dropzone.replace('dropzone_other_', ''));
-                //   setEquippedItems('add', [drItem], 'other', putIndex);
+                //   setInventorySlots('add', [drItem], 'other', putIndex);
                 // }
               } else {
                 //возвращаем предмет на место если опустили вне слота
@@ -977,7 +1247,7 @@ export default {
                 } else if (from === 'inventory') {
                   setInventory('add', [drItem]);
                 } else {
-                  setEquippedItems('add', [drItem], from, fromIndex);
+                  setInventorySlots('add', [drItem], from, fromIndex);
                   setInventory('add', [drItem])
                 }
               }
@@ -987,8 +1257,8 @@ export default {
               }
               draggedItem.value = null;
               draggedElement.value = null;
-              // setEquippedItems('clear', []);
-              //setEquippedItems('refresh', []);
+              // setInventorySlots('clear', []);
+              //setInventorySlots('refresh', []);
               isDragComplete.value = true;
           }
           document.addEventListener('mousemove', onMouseMove);
@@ -1014,17 +1284,16 @@ export default {
     //использование предмета на даблклик
     const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
       clearTimeout(clickTimeout);
-      if (mp) {
-        mp.trigger('useInventoryItem', item.id);
-      }
       //удаляем использованный предмет
       if (from === 'around') {
         setAround('delete', [item], fromIndex);
       } else if (from === 'inventory') {
         setInventory('delete', [item], fromIndex);
+        trigger('dropFromInventory', item, fromIndex);
       } else {
-        setEquippedItems('delete', [item], from, fromIndex);
+        setInventorySlots('delete', [item], from, fromIndex);
         setInventory('delete', [item]);
+        trigger('dropFromInventory', item, fromIndex);
       }
       setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       isDragComplete.value = true;
@@ -1055,18 +1324,22 @@ export default {
       //перетаскиваем если слева - то в инвентарь,ь, если справа - то в окружение
       //в зависимости от того хватит ли места по стакам в противоположном списке
       if (from === 'right' && isEnoughAroundPlace) {
+        const itemIndex = inventory.value.findIndex(i => i.id === item.id);
         if (isBackpackItem && isLastBackpack) {
           setLog(`Быстрое перемещение ${item?.name} невозможно ${new Date().getHours() + ':' + new Date().getMinutes()}`);
         } else {
           setAround('add', [item]);
-          if (isItemEquipped(item)) setEquippedItems('delete', [item], item.category as EquippedItemsKeys);
+          if (isItemEquipped(item)) setInventorySlots('delete', [item], item.category as EquippedItemsKeys);
           setInventory('delete', [item]);
+          trigger('dropFromInventory', item, itemIndex);
           setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
         }
       }
       if ((from === 'left' && isEnoughInventoryPlace) || (from === 'left' && !isEnoughInventoryPlace && isBackpackItem)) {
+        const itemIndex = around.value.findIndex(i => i.id === item.id);
         setAround('delete', [item]);
         setInventory('add', [item]);
+        trigger('pickFromAround', item, itemIndex);
         setLog(`Быстрое перемещение ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       }
       if (from === 'left' && !isEnoughInventoryPlace || from === 'right' && !isEnoughAroundPlace) {
@@ -1104,6 +1377,7 @@ export default {
       handleDblClick,
       handleRightClick,
       handleArrowClick,
+      handleContextUsage,
       isVertical,
       checkOrientation,
       draggedItem,

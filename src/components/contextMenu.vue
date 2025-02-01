@@ -1,20 +1,20 @@
 <template>
     <div v-if="visible" :style="menuStyles" class="context-menu">
-        <button v-if="isUsable" @click="useItem">Использовать</button>
-        <button :disabled="isBackpack || $props.from === 'around'" @click="dropItem">Выбросить</button>
-        <button v-if="isWearable" @click="equip">Надеть</button>
-        <button v-if="isArmor" :disabled="isBackpack" @click="unEquip">Освободить слот</button>
-        <button v-if="$props.from === 'around'" @click="moveToInventory">В инвентарь</button>
+        <button v-if="isUsable" @click="$emit('contextEvent', 'useItem', from, item)">Использовать</button>
+        <button :disabled="isBackpack || $props.from === 'around'" @click="$emit('contextEvent', 'dropItem', from, item)">Выбросить</button>
+        <button v-if="isWearable" @click="$emit('contextEvent', 'equip', from, item)">Надеть</button>
+        <button v-if="isArmor" :disabled="isBackpack" @click="$emit('contextEvent', 'unEquip', from, item)">Освободить слот</button>
+        <button v-if="$props.from === 'around'" @click="$emit('contextEvent', 'moveToInventory', from, item)">В инвентарь</button>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed, type PropType } from "vue";
-import { useInventoryItemsStore, type InventoryItem, type EquippedItemsKeys } from "../stores/inventory_items";
-import { useLogger } from "../stores/logger";
+import { type InventoryItem } from "../stores/inventory_items";
 
 export default defineComponent({
     name: "ContextMenu",
+    emits: ['contextEvent'],
     props: {
         visible: {
             type: Boolean,
@@ -28,21 +28,6 @@ export default defineComponent({
         item: { type: Object as PropType<InventoryItem>, required: true }
     },
     setup(props) {
-
-        const inventoryItemsStore = useInventoryItemsStore();
-        const logger = useLogger();
-        const { setLog } = logger;
-        const { setAround, setInventory, setEquippedItems } = inventoryItemsStore;
-        const mp = {
-            events: {
-                add: () => {},
-                remove: () => {},
-                call: () => {},
-            },
-            trigger: (action?: string, indicator?: number | string) => {
-                console.log('TRIGGER->', action, indicator)
-            }
-        };
 
         const isArmor = computed(() => {
             const isProperFrom = props.from !== 'inventory' && props.from !== 'around';
@@ -66,98 +51,8 @@ export default defineComponent({
         left: props.position.left,
         }));
 
-        // Методы кнопок
-        const useItem = () => {
-            if (!props.item) return
-            if (mp) {
-                mp.trigger('useItem', props.item.id);
-            }
-            if (props.from === 'around') {
-                setAround('delete', [props.item]);
-            }
-            if (props.from === 'inventory') {
-                setInventory('delete', [props.item]);
-            }
-            if (
-                (props.from === 'weapons_first' ||
-                props.from === 'weapons_second' ||
-                props.from === 'weapons_special' ||
-                props.from === 'head' ||
-                props.from === 'vest' ||
-                props.from === 'clothesUp' ||
-                props.from === 'clothesDown' ||
-                props.from === 'shoes' ||
-                props.from === 'backpack' ||
-                props.from === 'food' ||
-                props.from === 'medicine' ||
-                props.from === 'other') && props.item.category
-            ) {
-                setEquippedItems('delete', [props.item], props.item.category as EquippedItemsKeys);
-                setInventory('delete', [props.item]);
-            }
-            setLog(`Использован ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
-        };
-
-        const dropItem = () => {
-            if (!props.item) return
-            if (props.from === 'around') {
-                setAround('delete', [props.item]);
-            }
-            if (props.from === 'inventory') {
-                setAround('add', [props.item]);
-                setInventory('delete', [props.item]);
-            }
-            if (
-                (props.from === 'weapons_first' ||
-                props.from === 'weapons_second' ||
-                props.from === 'weapons_special' ||
-                props.from === 'head' ||
-                props.from === 'vest' ||
-                props.from === 'clothesUp' ||
-                props.from === 'clothesDown' ||
-                props.from === 'shoes' ||
-                props.from === 'backpack' ||
-                props.from === 'food' ||
-                props.from === 'medicine' ||
-                props.from === 'other') && props.item.category
-            ) {
-                setEquippedItems('delete', [props.item], props.item.category as EquippedItemsKeys);
-                setAround('add', [props.item]);
-                setInventory('delete', [props.item]);
-            }
-            setLog(`Выкинут ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
-        };
-
-        const equip = () => {
-            if (!props.item) return
-            setEquippedItems('add', [props.item], props.item.category as EquippedItemsKeys);
-            if (props.from === 'around') {
-                setInventory('add', [props.item]);
-                setAround('delete', [props.item]);
-            }
-            setLog(`Надет ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
-        }
-
-        const unEquip = () => {
-            if (!props.item) return
-            setEquippedItems('delete', [props.item], props.item.category as EquippedItemsKeys);
-            setLog(`Снят ${props.item?.name} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
-        }
-
-        const moveToInventory = () => {
-            if (!props.item) return
-            setInventory('add', [props.item]);
-            setAround('delete', [props.item]);
-            setLog(`Перемещен ${props.item?.name} в инвентарь ${new Date().getHours() + ':' + new Date().getMinutes()}`);
-        }
-
         return {
             menuStyles,
-            useItem,
-            dropItem,
-            equip,
-            unEquip,
-            moveToInventory,
             isArmor,
             isWearable,
             isBackpack,
