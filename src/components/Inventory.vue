@@ -13,9 +13,8 @@
           class="inventory-side-item"
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
-          @mousedown="handleMouseDown('around', $event, group.item, idx)"
+          @mousedown="handleClicks('around', $event, group.item, idx)"
           :id="'movable_left' + group.item.id"
-          @dblclick="handleDblClick('around', $event, group.item, idx)"
           @contextmenu="handleRightClick('around', $event, group.item)"
         >
           <img :src="group.item.icon" :alt="group.item.name" :class="/^weapons/i.test(group.item.category) ? 'double_image' : ''"/>
@@ -52,11 +51,10 @@
                 v-if="inventorySlots.weapons_first?.id"
                 :src="inventorySlots.weapons_first.icon"
                 :alt="inventorySlots.weapons_first.name"
-                @mousedown="handleMouseDown('weapons_first', $event, inventorySlots.weapons_first)"
+                @mousedown="handleClicks('weapons_first', $event, inventorySlots.weapons_first)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_first)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_first'"
-                @dblclick="handleDblClick('weapons_first', $event, inventorySlots.weapons_first)"
                 @contextmenu="handleRightClick('weapons_first', $event, inventorySlots.weapons_first)"
               />
             </div>
@@ -68,11 +66,10 @@
                 v-if="inventorySlots.weapons_second?.id"
                 :src="inventorySlots.weapons_second.icon"
                 :alt="inventorySlots.weapons_second.name"
-                @mousedown="handleMouseDown('weapons_second', $event, inventorySlots.weapons_second)"
+                @mousedown="handleClicks('weapons_second', $event, inventorySlots.weapons_second)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_second)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_second'"
-                @dblclick="handleDblClick('weapons_second', $event, inventorySlots.weapons_second)"
                 @contextmenu="handleRightClick('weapons_second', $event, inventorySlots.weapons_second)"
               />
             </div>
@@ -89,11 +86,10 @@
                 v-if="inventorySlots.weapons_special?.id"
                 :src="inventorySlots.weapons_special.icon"
                 :alt="inventorySlots.weapons_special.name"
-                @mousedown="handleMouseDown('weapons_special', $event, inventorySlots.weapons_special)"
+                @mousedown="handleClicks('weapons_special', $event, inventorySlots.weapons_special)"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_special)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_special'"
-                @dblclick="handleDblClick('weapons_special', $event, inventorySlots.weapons_special)"
                 @contextmenu="handleRightClick('weapons_special', $event, inventorySlots.weapons_special)"
               />
             </div>
@@ -109,9 +105,8 @@
                 :alt="inventorySlots.head.name"
                 @mouseover="showCenterTooltip(inventorySlots.head)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('head', $event, inventorySlots.head)"
+                @mousedown="handleClicks('head', $event, inventorySlots.head)"
                 :id="'movable_head'"
-                @dblclick="handleDblClick('head', $event, inventorySlots.head)"
                 @contextmenu="handleRightClick('head', $event, inventorySlots.head)"
               />
             </div>
@@ -122,9 +117,8 @@
                 :alt="inventorySlots.vest.name"
                 @mouseover="showCenterTooltip(inventorySlots.vest)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('vest', $event, inventorySlots.vest)"
+                @mousedown="handleClicks('vest', $event, inventorySlots.vest)"
                 :id="'movable_vest'"
-                @dblclick="handleDblClick('vest', $event, inventorySlots.vest)"
                 @contextmenu="handleRightClick('vest', $event, inventorySlots.vest)"
               />
             </div>
@@ -135,9 +129,8 @@
                 :alt="inventorySlots.clothesUp.name"
                 @mouseover="showCenterTooltip(inventorySlots.clothesUp)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('clothesUp', $event, inventorySlots.clothesUp)"
+                @mousedown="handleClicks('clothesUp', $event, inventorySlots.clothesUp)"
                 :id="'movable_clothesUp'"
-                @dblclick="handleDblClick('clothesUp', $event, inventorySlots.clothesUp)"
                 @contextmenu="handleRightClick('clothesUp', $event, inventorySlots.clothesUp)"
               />
             </div>
@@ -148,9 +141,8 @@
                 :alt="inventorySlots.clothesDown.name"
                 @mouseover="showCenterTooltip(inventorySlots.clothesDown)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('clothesDown', $event, inventorySlots.clothesDown)"
+                @mousedown="handleClicks('clothesDown', $event, inventorySlots.clothesDown)"
                 :id="'movable_clothesDown'"
-                @dblclick="handleDblClick('clothesDown', $event, inventorySlots.clothesDown)"
                 @contextmenu="handleRightClick('clothesDown', $event, inventorySlots.clothesDown)"
               />
             </div>
@@ -161,9 +153,8 @@
                 :alt="inventorySlots.shoes.name"
                 @mouseover="showCenterTooltip(inventorySlots.shoes)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('shoes', $event, inventorySlots.shoes)"
+                @mousedown="handleClicks('shoes', $event, inventorySlots.shoes)"
                 :id="'movable_shoes'"
-                @dblclick="handleDblClick('shoes', $event, inventorySlots.shoes)"
                 @contextmenu="handleRightClick('shoes', $event, inventorySlots.shoes)"
               />
             </div>
@@ -174,9 +165,8 @@
                 :alt="inventorySlots.backpack.name"
                 @mouseover="showCenterTooltip(inventorySlots.backpack)"
                 @mouseleave="hideTooltip"
-                @mousedown="handleMouseDown('backpack', $event, inventorySlots.backpack)"
+                @mousedown="handleClicks('backpack', $event, inventorySlots.backpack)"
                 :id="'movable_backpack'"
-                @dblclick="handleDblClick('backpack', $event, inventorySlots.backpack)"
                 @contextmenu="handleRightClick('backpack', $event, inventorySlots.backpack)"
               />
             </div> -->
@@ -198,9 +188,8 @@
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('food', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousedown="handleClicks('food', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_food_' + idx"
-                  @dblclick="handleDblClick('food', $event, item.item, idx)"
                   @contextmenu="handleRightClick('food', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
@@ -228,9 +217,8 @@
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('medicine', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousedown="handleClicks('medicine', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_medicine_' + idx"
-                  @dblclick="handleDblClick('medicine', $event, item.item, idx)"
                   @contextmenu="handleRightClick('medicine', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
@@ -258,9 +246,8 @@
                   :alt="item.item.name"
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
-                  @mousedown="handleMouseDown('other', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousedown="handleClicks('other', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
                   :id="'movable_other_' + idx"
-                  @dblclick="handleDblClick('other', $event, item.item, idx)"
                   @contextmenu="handleRightClick('other', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
@@ -296,9 +283,8 @@
           class="inventory-side-item items-right"
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
-          @mousedown="handleMouseDown('inventory', $event, group.item, idx)"
+          @mousedown="handleClicks('inventory', $event, group.item, idx)"
           :id="'movable_right' + group.item.id"
-          @dblclick="handleDblClick('inventory', $event, group.item, idx)"
           @contextmenu="handleRightClick('inventory', $event, group.item)"
         >
           <img :src="'./arrow.png'" :alt="''" class="right-arrow" v-on:click="handleArrowClick('right', group.item, $event)">
@@ -803,7 +789,7 @@ export default {
       if (isLoggerHovered.value) return; //курсор на логгере
       hideLoggerTimer = setTimeout(() => {
         showLogger.value = false;
-      }, 3000);
+      }, 5000);
     }
     const cancelAutoHideLogger = () => {
       isLoggerHovered.value = true;
@@ -973,165 +959,177 @@ export default {
     const draggedElement = ref<HTMLElement | null>(null);
     const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
     const dragOffset = reactive({ x: 0, y: 0 });
-    let clickTimeout: ReturnType<typeof setTimeout>;
+    let clickTimeout: ReturnType<typeof setTimeout> | null;
     let arrowTimeout: ReturnType<typeof setTimeout>;
 
-    const handleMouseDown = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
+    const handleClicks = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+        handleDblClick(from, event, item, fromIndex);
+      } else {
+        clickTimeout = setTimeout(() => {
+          event.preventDefault();
+          handleStartDragndrop(from, event, item, fromIndex, properTargets);
+          clickTimeout = null;
+        }, 300); // Время между кликами, можно подстроить
+      }
+    }
+
+    const handleStartDragndrop = (from: ValidFrom, eventD: MouseEvent, drItem: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
       eventD.preventDefault();
       isDragComplete.value = false;
       let forceStop = false;
       let isMouseMoved = false;
       if (eventD.button === 2) return;
-      clearTimeout(clickTimeout);
-      clickTimeout = setTimeout(() => {
-        //останавливаем проваливание события клика на стрелку
-        if (isArrowClicked.value || forceStop) return;
-        if (eventD.button === 0 && drItem) {
-          hideTooltip();
-          const target = eventD.target as HTMLElement;
-          let item = target.closest("[id*='movable']") as HTMLElement;
-          const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
-          const isEnoughInventoryPlace = from === 'around' && backpackSize.value ?
-            itemStackSize + inventorySize.value <= backpackSize.value : true;
-          const isEnoughAroundPlace = from !== 'around' ? itemStackSize + aroundSize.value <= aroundCapacity.value : true;
-          const triggerIndex = from === 'around' ? around.value.findIndex(i => i.id === drItem.id) :
-            from === 'inventory' ? inventory.value.findIndex(i => i.id === drItem.id) : -1;
+      //останавливаем проваливание события клика на стрелку
+      if (isArrowClicked.value || forceStop) return;
+      if (eventD.button === 0 && drItem) {
+        hideTooltip();
+        const target = eventD.target as HTMLElement;
+        let item = target.closest("[id*='movable']") as HTMLElement;
+        const itemStackSize = calcSlots(drItem.size, drItem.stackable, drItem.slotable);
+        const isEnoughInventoryPlace = from === 'around' && backpackSize.value ?
+          itemStackSize + inventorySize.value <= backpackSize.value : true;
+        const isEnoughAroundPlace = from !== 'around' ? itemStackSize + aroundSize.value <= aroundCapacity.value : true;
+        const triggerIndex = from === 'around' ? around.value.findIndex(i => i.id === drItem.id) :
+          from === 'inventory' ? inventory.value.findIndex(i => i.id === drItem.id) : -1;
 
-          if (!item) return;
+        if (!item) return;
 
-          // Устанавливаем перетаскиваемый элемент
-          draggedElement.value = item;
-          draggedItem.value = { from, item: drItem };
-          let movedItemDeleted = false;
-          let isItemCloned = false;
+        // Устанавливаем перетаскиваемый элемент
+        draggedElement.value = item;
+        draggedItem.value = { from, item: drItem };
+        let movedItemDeleted = false;
+        let isItemCloned = false;
 
-          // Сохраняем смещение курсора относительно элемента
-          const rect = item.getBoundingClientRect();
-          dragOffset.x = eventD.clientX - rect.left;
-          dragOffset.y = eventD.clientY - rect.top;
-          //const shiftX = event.clientX - rect.left;
-          //const shiftY = event.clientY - rect.top;
+        // Сохраняем смещение курсора относительно элемента
+        const rect = item.getBoundingClientRect();
+        dragOffset.x = eventD.clientX - rect.left;
+        dragOffset.y = eventD.clientY - rect.top;
+        //const shiftX = event.clientX - rect.left;
+        //const shiftY = event.clientY - rect.top;
 
-          function onMouseMove(event: MouseEvent) {
-            if (event.buttons !== 1) {
-              event.preventDefault();
-              return
+        function onMouseMove(event: MouseEvent) {
+          if (event.buttons !== 1) {
+            event.preventDefault();
+            return
+          }
+            
+            //проверяем что предмет не один в слоте
+            if(
+              (from === 'food' ||
+              from === 'medicine' ||
+              from === 'other') &&
+              fromIndex !== undefined &&
+              fromIndex >= 0 &&
+              inventorySlots.value[from][fromIndex]
+            ) {
+              if (inventorySlots.value[from][fromIndex].quantity > 1 && !isItemCloned) {
+                item = item.cloneNode(true) as HTMLElement;
+                isItemCloned = true;
+              }
             }
-              
-              //проверяем что предмет не один в слоте
-              if(
-                (from === 'food' ||
-                from === 'medicine' ||
-                from === 'other') &&
-                fromIndex !== undefined &&
-                fromIndex >= 0 &&
-                inventorySlots.value[from][fromIndex]
-              ) {
-                if (inventorySlots.value[from][fromIndex].quantity > 1 && !isItemCloned) {
-                  item = item.cloneNode(true) as HTMLElement;
-                  isItemCloned = true;
-                }
-              }
 
-              // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
-              if (!movedItemDeleted) {
-                if (from === 'around') {
-                  setAround('delete', [drItem]);
-                  movedItemDeleted = true;
-                } else if (from === 'inventory') {
-                  setInventory('delete', [drItem]);
-                  trigger('dropFromInventory', drItem, triggerIndex);
-                  if (isItemEquipped(drItem)) {
-                    setInventorySlots('delete', [drItem], drItem.category as keyof EquippedItems);
-                  }
-                  movedItemDeleted = true;
-                } else {
-                  setInventorySlots('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
-                  setInventory('delete', [drItem]);
-                  trigger('dropFromInventory', drItem, triggerIndex);
-                  movedItemDeleted = true;
+            // Удаляем предмет из прошлого расположения (объект inventorySlots | around | inventory)
+            if (!movedItemDeleted) {
+              if (from === 'around') {
+                setAround('delete', [drItem]);
+                movedItemDeleted = true;
+              } else if (from === 'inventory') {
+                setInventory('delete', [drItem]);
+                trigger('dropFromInventory', drItem, triggerIndex);
+                if (isItemEquipped(drItem)) {
+                  setInventorySlots('delete', [drItem], drItem.category as keyof EquippedItems);
                 }
-              }
-
-              // Переводим элемент в абсолютное позиционирование
-              item.style.position = "absolute";
-              item.style.zIndex = "1000";
-              item.style.pointerEvents = "none";
-              document.body.appendChild(item);
-              item.style.left = `${event.pageX - 15}px`;
-              item.style.top = `${event.pageY - 15}px`;
-              if (/^movable_right/i.test(item.id)) {
-                item.style.flexDirection = 'row-reverse';
-                item.style.justifyContent = 'flex-end';
-              }
-              if (window.innerWidth < 1280) {
-                item.style.height = '30px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '90px' : '30px'; 
-              } else if (window.innerWidth < 1440) {
-                item.style.height = '33px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '99px' : '33px'; 
-              } else if (window.innerWidth < 1680) {
-                item.style.height = '40px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '120px' : '40px'; 
-              } else if (window.innerWidth < 1920) {
-                item.style.height = '47px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '141px' : '47px'; 
-              } else if (window.innerWidth < 2560) {
-                item.style.height = '53px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '159px' : '53px';
+                movedItemDeleted = true;
               } else {
-                item.style.height = '60px';
-                item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '180px' : '60px';
+                setInventorySlots('delete', [drItem], drItem?.category as keyof EquippedItems, fromIndex);
+                setInventory('delete', [drItem]);
+                trigger('dropFromInventory', drItem, triggerIndex);
+                movedItemDeleted = true;
               }
-              //подсвечиваем элемент, на который можно положить предмет
-              const target = event.target as HTMLElement;
-              if (target && isActiveIndicator.value) {
-                const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
-                const isDropzone = /^dropzone/i.test(target.id);
-                const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
-                const isFastSlot = /food|medicine|other/gi.test(target.id);
-                const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
-                //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
-                const isCompatible = checkDropCompatibility(drItem?.category, target.id);
-                if (target.tagName === 'BODY') {
-                  //наводим предмет вне окна инвентаря и подсвечиваем окружение
-                  const leftZone = document.getElementById('dropzone_left');
-                  if (leftZone) {
-                    leftZone.style.border = isEnoughAroundPlace ?
-                      `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
-                      `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                  }
-                }
-                if(target.id === 'dropzone_right') {
-                  target.style.border = (isCompatible && isEnoughInventoryPlace) || (!isEnoughInventoryPlace && isBackpackItem) ?
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                } else if (target.id === 'dropzone_left') {
-                  target.style.border = isEnoughAroundPlace ?
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                } else if (isDropzone && !isSideZone && !isFastSlot) {
-                  target.style.border = isCompatible && isEnoughInventoryPlace ? 
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                } else if (isImageInSlot) {
-                  target.style.border = (isCompatible && isEnoughInventoryPlace) ||
-                  (isCompatible && !isEnoughInventoryPlace && isBackpackItem) ||
-                  (/^movable_left/i.test(target.id) && isEnoughAroundPlace) ||
-                  (/^movable_right/i.test(target.id) && isEnoughInventoryPlace) ||
-                  (/^movable_right/i.test(target.id) && !isEnoughInventoryPlace && isBackpackItem) ?
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
-                  `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
-                }
-                target.onmouseout = () => {
-                  if(isSideZone || isImageInSlot) {
-                    target.style.border = "none";
-                  } else if (isDropzone && !isSideZone) {
-                    target.style.border = `${window.screen.width > 1920 ? '2px' : '1px'} solid rgb(75, 75, 75)`;
-                  }
+            }
+
+            // Переводим элемент в абсолютное позиционирование
+            item.style.position = "absolute";
+            item.style.zIndex = "1000";
+            item.style.pointerEvents = "none";
+            document.body.appendChild(item);
+            item.style.left = `${event.pageX - 15}px`;
+            item.style.top = `${event.pageY - 15}px`;
+            if (/^movable_right/i.test(item.id)) {
+              item.style.flexDirection = 'row-reverse';
+              item.style.justifyContent = 'flex-end';
+            }
+            if (window.innerWidth < 1280) {
+              item.style.height = '30px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '90px' : '30px'; 
+            } else if (window.innerWidth < 1440) {
+              item.style.height = '33px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '99px' : '33px'; 
+            } else if (window.innerWidth < 1680) {
+              item.style.height = '40px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '120px' : '40px'; 
+            } else if (window.innerWidth < 1920) {
+              item.style.height = '47px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '141px' : '47px'; 
+            } else if (window.innerWidth < 2560) {
+              item.style.height = '53px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '159px' : '53px';
+            } else {
+              item.style.height = '60px';
+              item.style.maxWidth = /^movable_left|^movable_right/i.test(item.id) || /^movable_weapons/i.test(item.id) ? '180px' : '60px';
+            }
+            //подсвечиваем элемент, на который можно положить предмет
+            const target = event.target as HTMLElement;
+            if (target && isActiveIndicator.value) {
+              const isSideZone = ['dropzone_left', 'dropzone_right'].includes(target.id);
+              const isDropzone = /^dropzone/i.test(target.id);
+              const isImageInSlot = /^movable/i.test(target.id) && !/food|medicine|other/gi.test(target.id);
+              const isFastSlot = /food|medicine|other/gi.test(target.id);
+              const isBackpackItem = /рюкзак|сумка/gi.test(drItem.name);
+              //проверка подходит ли перетаскиваемый предмет в слот по category и по размеру рюкзака
+              const isCompatible = checkDropCompatibility(drItem?.category, target.id);
+              if (target.tagName === 'BODY') {
+                //наводим предмет вне окна инвентаря и подсвечиваем окружение
+                const leftZone = document.getElementById('dropzone_left');
+                if (leftZone) {
+                  leftZone.style.border = isEnoughAroundPlace ?
+                    `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                    `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
                 }
               }
-              isMouseMoved = true;
+              if(target.id === 'dropzone_right') {
+                target.style.border = (isCompatible && isEnoughInventoryPlace) || (!isEnoughInventoryPlace && isBackpackItem) ?
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+              } else if (target.id === 'dropzone_left') {
+                target.style.border = isEnoughAroundPlace ?
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+              } else if (isDropzone && !isSideZone && !isFastSlot) {
+                target.style.border = isCompatible && isEnoughInventoryPlace ? 
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+              } else if (isImageInSlot) {
+                target.style.border = (isCompatible && isEnoughInventoryPlace) ||
+                (isCompatible && !isEnoughInventoryPlace && isBackpackItem) ||
+                (/^movable_left/i.test(target.id) && isEnoughAroundPlace) ||
+                (/^movable_right/i.test(target.id) && isEnoughInventoryPlace) ||
+                (/^movable_right/i.test(target.id) && !isEnoughInventoryPlace && isBackpackItem) ?
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed orange` :
+                `${window.screen.width > 1920 ? '2px' : '1px'} dashed red`;
+              }
+              target.onmouseout = () => {
+                if(isSideZone || isImageInSlot) {
+                  target.style.border = "none";
+                } else if (isDropzone && !isSideZone) {
+                  target.style.border = `${window.screen.width > 1920 ? '2px' : '1px'} solid rgb(75, 75, 75)`;
+                }
+              }
+            }
+            isMouseMoved = true;
           }
           function onMouseUp(eventUp: MouseEvent) {
               if (!isMouseMoved) {
@@ -1273,10 +1271,14 @@ export default {
           }
           document.addEventListener('mousemove', onMouseMove);
           document.addEventListener('mouseup', onMouseUp);
+          document.addEventListener("selectstart", preventSelection);
+
+          function preventSelection(event: Event) {
+            event.preventDefault();
+          }
 
           eventD.preventDefault();
         }
-      }, 300);
       document.addEventListener('mouseup', (ev: MouseEvent) => {
         //проверяем отпущена ли кнопка мыши для перетягивания предмета сразу
         if (
@@ -1293,19 +1295,32 @@ export default {
 
     //использование предмета на даблклик
     const handleDblClick = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number) => {
-      clearTimeout(clickTimeout);
+      const needToDeleteAfterUse = ['food', 'medicine', 'other', 'ammo'].indexOf(item.category) >= 0;
       //удаляем использованный предмет
-      if (from === 'around') {
+      if (from === 'around' && needToDeleteAfterUse) {
         setAround('delete', [item], fromIndex);
-      } else if (from === 'inventory') {
+        trigger('useItem', item, fromIndex);
+      } else if (from === 'around' && !needToDeleteAfterUse) {
+        setAround('delete', [item], fromIndex);
+        setInventory('add', [item]);
+        trigger('pickFromAround', item, fromIndex);
+        setInventorySlots('add', [item], item.category as EquippedItemsKeys);
+        if (/weapon/gi.test(item.category)) {
+          trigger(item.category === 'weapons_first' ? 'setSlotOne' : item.category === 'weapons_second' ? 'setSlotTwo' : 'setSlotThree', item, fromIndex);
+        }
+      } else if (from === 'inventory' && needToDeleteAfterUse) {
         setInventory('delete', [item], fromIndex);
-        trigger('dropFromInventory', item, fromIndex);
-      } else {
-        setInventorySlots('delete', [item], from, fromIndex);
+        trigger('useItem', item, fromIndex);
+      } else if (from === 'inventory' && !needToDeleteAfterUse) {
+        setInventorySlots('add', [item], item.category as EquippedItemsKeys);
+        if (/weapon/gi.test(item.category)) {
+          trigger(item.category === 'weapons_first' ? 'setSlotOne' : item.category === 'weapons_second' ? 'setSlotTwo' : 'setSlotThree', item, fromIndex);
+        }
+      } else if (from !== 'around' && from !== 'inventory' && needToDeleteAfterUse) {
+        setInventorySlots('delete', [item], from as EquippedItemsKeys, fromIndex);
         setInventory('delete', [item]);
-        trigger('dropFromInventory', item, fromIndex);
+        trigger('useItem', item, fromIndex);
       }
-      trigger('useItem', item, fromIndex);
       setLog(`Использование ${item?.name} из ${from} ${new Date().getHours() + ':' + new Date().getMinutes()}`);
       isDragComplete.value = true;
     }
@@ -1384,8 +1399,7 @@ export default {
       showRightTooltip,
       showCenterTooltip,
       hideTooltip,
-      handleMouseDown,
-      handleDblClick,
+      handleClicks,
       handleRightClick,
       handleArrowClick,
       handleContextUsage,
@@ -1429,6 +1443,7 @@ export default {
   border-radius: 1rem;
   /* padding: 2rem; */
   font-family: "Roboto", serif;
+  user-select: none;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;;
 }
 

@@ -35,6 +35,9 @@ export default {
     padding-right: calc(var(--section-gap) / 2);
   }
 }
+body {
+  overflow: hidden;
+}
 div {
   user-select: none;
 }
