@@ -14,13 +14,14 @@
           @mouseover="showLeftTooltip(group.item)"
           @mouseleave="hideTooltip"
           @mousedown="handleClicks('around', $event, group.item, idx)"
+          @mousemove="checkDblClick"
           :id="'movable_left' + group.item.id"
-          @contextmenu="handleRightClick('around', $event, group.item)"
+          @contextmenu.prevent="handleRightClick('around', $event, group.item)"
         >
           <img :src="group.item.icon" :alt="group.item.name" :class="/^weapons/i.test(group.item.category) ? 'double_image' : ''"/>
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-left">{{ group.quantity }}</label>
-          <img :src="'./arrow.png'" :alt="''" class="left-arrow" @click="handleArrowClick('left', group.item, $event)">
+          <img :src="'./arrow.png'" :alt="''" class="left-arrow" @click.stop="handleArrowClick('left', group.item, $event)">
         </div>
       </div>
       <!-- Tooltip -->
@@ -52,10 +53,11 @@
                 :src="inventorySlots.weapons_first.icon"
                 :alt="inventorySlots.weapons_first.name"
                 @mousedown="handleClicks('weapons_first', $event, inventorySlots.weapons_first)"
+                @mousemove="checkDblClick"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_first)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_first'"
-                @contextmenu="handleRightClick('weapons_first', $event, inventorySlots.weapons_first)"
+                @contextmenu.prevent="handleRightClick('weapons_first', $event, inventorySlots.weapons_first)"
               />
             </div>
             <div
@@ -67,10 +69,11 @@
                 :src="inventorySlots.weapons_second.icon"
                 :alt="inventorySlots.weapons_second.name"
                 @mousedown="handleClicks('weapons_second', $event, inventorySlots.weapons_second)"
+                @mousemove="checkDblClick"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_second)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_second'"
-                @contextmenu="handleRightClick('weapons_second', $event, inventorySlots.weapons_second)"
+                @contextmenu.prevent="handleRightClick('weapons_second', $event, inventorySlots.weapons_second)"
               />
             </div>
           </div>
@@ -87,10 +90,11 @@
                 :src="inventorySlots.weapons_special.icon"
                 :alt="inventorySlots.weapons_special.name"
                 @mousedown="handleClicks('weapons_special', $event, inventorySlots.weapons_special)"
+                @mousemove="checkDblClick"
                 @mouseover="showCenterTooltip(inventorySlots.weapons_special)"
                 @mouseleave="hideTooltip"
                 :id="'movable_weapons_special'"
-                @contextmenu="handleRightClick('weapons_special', $event, inventorySlots.weapons_special)"
+                @contextmenu.prevent="handleRightClick('weapons_special', $event, inventorySlots.weapons_special)"
               />
             </div>
           </div>
@@ -106,8 +110,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.head)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('head', $event, inventorySlots.head)"
+                @mousemove="checkDblClick"
                 :id="'movable_head'"
-                @contextmenu="handleRightClick('head', $event, inventorySlots.head)"
+                @contextmenu.prevent="handleRightClick('head', $event, inventorySlots.head)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-vest': !inventorySlots.vest}" :id="'dropzone_vest'">
@@ -118,8 +123,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.vest)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('vest', $event, inventorySlots.vest)"
+                @mousemove="checkDblClick"
                 :id="'movable_vest'"
-                @contextmenu="handleRightClick('vest', $event, inventorySlots.vest)"
+                @contextmenu.prevent="handleRightClick('vest', $event, inventorySlots.vest)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-up': !inventorySlots.clothesUp}" :id="'dropzone_clothesUp'">
@@ -130,8 +136,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesUp)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('clothesUp', $event, inventorySlots.clothesUp)"
+                @mousemove="checkDblClick"
                 :id="'movable_clothesUp'"
-                @contextmenu="handleRightClick('clothesUp', $event, inventorySlots.clothesUp)"
+                @contextmenu.prevent="handleRightClick('clothesUp', $event, inventorySlots.clothesUp)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-clothes-down': !inventorySlots.clothesDown}" :id="'dropzone_clothesDown'">
@@ -142,8 +149,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.clothesDown)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('clothesDown', $event, inventorySlots.clothesDown)"
+                @mousemove="checkDblClick"
                 :id="'movable_clothesDown'"
-                @contextmenu="handleRightClick('clothesDown', $event, inventorySlots.clothesDown)"
+                @contextmenu.prevent="handleRightClick('clothesDown', $event, inventorySlots.clothesDown)"
               />
             </div>
             <div class="slot" :class="{'slot-bg-shoes': !inventorySlots.shoes}" :id="'dropzone_shoes'">
@@ -154,8 +162,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.shoes)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('shoes', $event, inventorySlots.shoes)"
+                @mousemove="checkDblClick"
                 :id="'movable_shoes'"
-                @contextmenu="handleRightClick('shoes', $event, inventorySlots.shoes)"
+                @contextmenu.prevent="handleRightClick('shoes', $event, inventorySlots.shoes)"
               />
             </div>
             <!-- <div class="slot" :class="{'slot-bg-backpack': !inventorySlots.backpack}" :id="'dropzone_backpack'">
@@ -166,8 +175,9 @@
                 @mouseover="showCenterTooltip(inventorySlots.backpack)"
                 @mouseleave="hideTooltip"
                 @mousedown="handleClicks('backpack', $event, inventorySlots.backpack)"
+                @mousemove="checkDblClick"
                 :id="'movable_backpack'"
-                @contextmenu="handleRightClick('backpack', $event, inventorySlots.backpack)"
+                @contextmenu.prevent="handleRightClick('backpack', $event, inventorySlots.backpack)"
               />
             </div> -->
           </div>
@@ -189,8 +199,9 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleClicks('food', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousemove="checkDblClick"
                   :id="'movable_food_' + idx"
-                  @contextmenu="handleRightClick('food', $event, item.item)"
+                  @contextmenu.prevent="handleRightClick('food', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
@@ -218,8 +229,9 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleClicks('medicine', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousemove="checkDblClick"
                   :id="'movable_medicine_' + idx"
-                  @contextmenu="handleRightClick('medicine', $event, item.item)"
+                  @contextmenu.prevent="handleRightClick('medicine', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
@@ -247,8 +259,9 @@
                   @mouseover="showCenterTooltip(item.item)"
                   @mouseleave="hideTooltip"
                   @mousedown="handleClicks('other', $event, item.item, idx, ['dropzone_left', 'dropzone_right'])"
+                  @mousemove="checkDblClick"
                   :id="'movable_other_' + idx"
-                  @contextmenu="handleRightClick('other', $event, item.item)"
+                  @contextmenu.prevent="handleRightClick('other', $event, item.item)"
                 />
                 <label v-if="item?.quantity" class="equipment-quantity-label">{{ item.quantity }}</label>
               </template>
@@ -284,10 +297,11 @@
           @mouseover="showRightTooltip(group.item)"
           @mouseleave="hideTooltip"
           @mousedown="handleClicks('inventory', $event, group.item, idx)"
+          @mousemove="checkDblClick"
           :id="'movable_right' + group.item.id"
-          @contextmenu="handleRightClick('inventory', $event, group.item)"
+          @contextmenu.prevent="handleRightClick('inventory', $event, group.item)"
         >
-          <img :src="'./arrow.png'" :alt="''" class="right-arrow" v-on:click="handleArrowClick('right', group.item, $event)">
+          <img :src="'./arrow.png'" :alt="''" class="right-arrow" @click.stop="handleArrowClick('right', group.item, $event)">
           <p draggable="false">{{ group.item.name }}</p>
           <label class="inventory-side-label-right">{{ group.quantity }}</label>
           <img :src="group.item.icon" :alt="group.item.name" :class="/^weapons/i.test(group.item.category) ? 'double_image' : ''"/>
@@ -750,6 +764,9 @@ export default {
     }
 
     const trigger = (action: string, item: InventoryItem, index?: number) => {
+      // const mp = {trigger: (s1:string, s2: string, s3: string) => {
+      //   console.log(`trigger ${s1} ${s2} ${s3}`);
+      // }}
       if (mp) {
         //выкидываем в окружение из инвентаря (передаем индекс придмета в массиве inventory)
         if (action === 'dropFromInventory' && index) {
@@ -959,19 +976,25 @@ export default {
     const draggedElement = ref<HTMLElement | null>(null);
     const draggedItem = ref<{ from: string, item: InventoryItem } | null>(null);
     const dragOffset = reactive({ x: 0, y: 0 });
-    let clickTimeout: ReturnType<typeof setTimeout> | null;
+    let clickTimeout: ReturnType<typeof setTimeout>;
     let arrowTimeout: ReturnType<typeof setTimeout>;
+    const isMouseDown = ref(false);
+    const lastClickTime = ref(0);
+
+    const checkDblClick = () => {
+      if (isMouseDown.value) isMouseDown.value = false;
+    }
 
     const handleClicks = (from: ValidFrom, event: MouseEvent, item: InventoryItem, fromIndex?: number, properTargets?: string[]) => {
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-        clickTimeout = null;
+      if (isMouseDown.value && Date.now() - lastClickTime.value < 300) {
         handleDblClick(from, event, item, fromIndex);
       } else {
+        lastClickTime.value = Date.now();
+        isMouseDown.value = true;
+        clearTimeout(clickTimeout);
         clickTimeout = setTimeout(() => {
           event.preventDefault();
           handleStartDragndrop(from, event, item, fromIndex, properTargets);
-          clickTimeout = null;
         }, 300); // Время между кликами, можно подстроить
       }
     }
@@ -1333,7 +1356,7 @@ export default {
       contextMenuVisible.value = true;
       contextMenuPosition.value = {
         top: event.clientY + 'px',
-        left: event.clientX + 'px',
+        left: event.clientX + 'px',https://github.com/sas0mir/rage_mp_inventory.git
       };
     }
 
@@ -1400,6 +1423,7 @@ export default {
       showCenterTooltip,
       hideTooltip,
       handleClicks,
+      checkDblClick,
       handleRightClick,
       handleArrowClick,
       handleContextUsage,
