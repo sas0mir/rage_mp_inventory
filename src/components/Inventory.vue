@@ -421,11 +421,11 @@ export default {
     const loadData = async () => {
       try {
         //если мы в игре подгружаем реальные данные
-        if (mp) {
-          mp.events.add("initSlots", (mpData: string) => setInventorySlots('init', JSON.parse(mpData)));
-          mp.events.add("openVueInventory", (mpData: string) => setInventory('init', JSON.parse(mpData)));
-          mp.events.add("openVueInventoryAround", (mpData:string) => setAround('init', JSON.parse(mpData)));
-          mp.events.add("clearLastInventory", () => clearInventory());
+        if (false) {
+          // mp.events.add("initSlots", (mpData: string) => setInventorySlots('init', JSON.parse(mpData)));
+          // mp.events.add("openVueInventory", (mpData: string) => setInventory('init', JSON.parse(mpData)));
+          // mp.events.add("openVueInventoryAround", (mpData:string) => setAround('init', JSON.parse(mpData)));
+          // mp.events.add("clearLastInventory", () => clearInventory());
         } else {
           //Подгружаем мок данные из стора если нет реальных
           setAround('init', mockAroundItems);
@@ -764,9 +764,9 @@ export default {
     }
 
     const trigger = (action: string, item: InventoryItem, index?: number) => {
-      // const mp = {trigger: (s1:string, s2: string, s3: string) => {
-      //   console.log(`trigger ${s1} ${s2} ${s3}`);
-      // }}
+      const mp = {trigger: (s1:string, s2: string, s3: string) => {
+        console.log(`trigger ${s1} ${s2} ${s3}`);
+      }}
       if (mp) {
         //выкидываем в окружение из инвентаря (передаем индекс придмета в массиве inventory)
         if (action === 'dropFromInventory' && index) {
@@ -1356,7 +1356,7 @@ export default {
       contextMenuVisible.value = true;
       contextMenuPosition.value = {
         top: event.clientY + 'px',
-        left: event.clientX + 'px',https://github.com/sas0mir/rage_mp_inventory.git
+        left: event.clientX + 'px',
       };
     }
 
